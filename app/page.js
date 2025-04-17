@@ -3,7 +3,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {
   Settings,
@@ -11,45 +11,29 @@ import {
   Grid,
   List,
   ChevronDown,
-  MoreVertical,
+  MoreVertical
 } from "lucide-react";
 
 export default function NotebookLM() {
   return (
     <div className="min-h-screen bg-white">
-      {/* NotebookLM Header */}
       <header className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center">
           <div className="w-8 h-8 mr-2 rounded-full bg-gray-800"></div>
-          <h1 className="text-xl font-semibold">LawyerUP</h1>
+          <h1 className="text-xl font-semibold">Lawyer</h1>
         </div>
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon">
-            <Settings className="w-5 h-5" />
-            <span className="sr-only">Settings</span>
-          </Button>
-          <Button variant="ghost" size="icon">
-            <div className="grid grid-cols-3 gap-0.5">
-              {[...Array(9)].map((_, i) => (
-                <div key={i} className="w-1 h-1 rounded-full bg-gray-500" />
-              ))}
-            </div>
-            <span className="sr-only">Apps</span>
-          </Button>
-          <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white">
-            H
-          </div>
-        </div>
+          <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white">H</div>
       </header>
 
-      {/* Main Content */}
+
       <main className="max-w-5xl mx-auto px-6 py-12">
         <h1 className="text-5xl font-bold mb-16 bg-gradient-to-r from-blue-400 to-teal-500 bg-clip-text text-transparent">
-          Welcome to LawyerUP
+          Welcome to Lawyer
+          <span className="text-gray-800">, your AI-powered legal assistant</span>
         </h1>
 
         <div>
-          <h2 className="text-2xl font-medium mb-4">My workspaces</h2>
+          <h2 className="text-2xl font-medium mb-4">My notebooks</h2>
           <div className="border-b border-gray-200 mb-4"></div>
 
           <div className="flex items-center justify-between mb-6">
@@ -60,10 +44,7 @@ export default function NotebookLM() {
 
             <div className="flex items-center">
               <div className="flex border rounded-l-md overflow-hidden">
-                <Button
-                  variant="ghost"
-                  className="rounded-none border-r h-9 px-3"
-                >
+                <Button variant="ghost" className="rounded-none border-r h-9 px-3">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -80,10 +61,7 @@ export default function NotebookLM() {
                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                   </svg>
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="rounded-none border-r h-9 px-3"
-                >
+                <Button variant="ghost" className="rounded-none border-r h-9 px-3">
                   <Grid className="w-5 h-5" />
                 </Button>
                 <Button variant="ghost" className="rounded-none h-9 px-3">
@@ -122,9 +100,7 @@ export default function NotebookLM() {
             </div>
 
             <div className="absolute bottom-4 left-4 right-4">
-              <h3 className="text-lg font-medium text-gray-800 mb-1">
-                Untitled notebook
-              </h3>
+              <h3 className="text-lg font-medium text-gray-800 mb-1">Untitled notebook</h3>
               <p className="text-sm text-gray-600">18 Apr 2025 · 0 sources</p>
             </div>
           </div>
