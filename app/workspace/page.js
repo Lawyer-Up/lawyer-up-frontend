@@ -22,6 +22,8 @@ import {
   FilePlus,
   Trash2,
   Gavel,
+  Calendar,
+  Check,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -55,11 +57,35 @@ export default function NotebookApp() {
   const [showArgumentGenerator, setShowArgumentGenerator] = useState(false);
   const [argumentPoints, setArgumentPoints] = useState([]);
   const [isGeneratingArguments, setIsGeneratingArguments] = useState(false);
+  
+  // Notes state
+  const [notes, setNotes] = useState([
+    { id: 1, content: "Client meeting scheduled for next week", createdAt: new Date() },
+    { id: 2, content: "Review evidence documents", createdAt: new Date() }
+  ]);
+  const [newNote, setNewNote] = useState('');
+  
+  // Timeline state
+  const [timelineEvents, setTimelineEvents] = useState([
+    { 
+      id: 1, 
+      title: "First Hearing", 
+      date: "2023-11-15", 
+      completed: false 
+    },
+    { 
+      id: 2, 
+      title: "Evidence Submission", 
+      date: "2023-12-01", 
+      completed: false 
+    }
+  ]);
+  const [newEventTitle, setNewEventTitle] = useState('');
+  const [newEventDate, setNewEventDate] = useState('');
 
   const generateArguments = () => {
     setIsGeneratingArguments(true);
     
-    // Simulate analyzing the active file content
     setTimeout(() => {
       const exampleArguments = [
         "Establish duty of care between the parties based on contractual relationship",
@@ -74,7 +100,52 @@ export default function NotebookApp() {
   };
 
   const addArgumentToNotes = (point) => {
-    setMessages([...messages, { sender: 'system', text: `Argument Point: ${point}` }]);
+    const newNote = {
+      id: Date.now(),
+      content: point,
+      createdAt: new Date()
+    };
+    setNotes([...notes, newNote]);
+  };
+
+  const addNote = () => {
+    if (newNote.trim()) {
+      const note = {
+        id: Date.now(),
+        content: newNote,
+        createdAt: new Date()
+      };
+      setNotes([...notes, note]);
+      setNewNote('');
+    }
+  };
+
+  const deleteNote = (id) => {
+    setNotes(notes.filter(note => note.id !== id));
+  };
+
+  const addTimelineEvent = () => {
+    if (newEventTitle.trim() && newEventDate) {
+      const event = {
+        id: Date.now(),
+        title: newEventTitle,
+        date: newEventDate,
+        completed: false
+      };
+      setTimelineEvents([...timelineEvents, event]);
+      setNewEventTitle('');
+      setNewEventDate('');
+    }
+  };
+
+  const deleteTimelineEvent = (id) => {
+    setTimelineEvents(timelineEvents.filter(event => event.id !== id));
+  };
+
+  const toggleEventCompletion = (id) => {
+    setTimelineEvents(timelineEvents.map(event => 
+      event.id === id ? { ...event, completed: !event.completed } : event
+    ));
   };
 
   const toggleFileExplorer = () => {
@@ -675,7 +746,7 @@ export default function NotebookApp() {
             </button>
           </div>
 
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-4 overflow-y-auto flex-1">
             {showArgumentGenerator ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -734,61 +805,119 @@ export default function NotebookApp() {
               <>
                 <div className="flex items-center justify-between">
                   <h3 className="font-medium">Notes</h3>
-                  <button className="p-1 hover:bg-gray-100 rounded">
-                    <MoreVertical className="w-5 h-5" />
+                  <button 
+                    onClick={() => setShowArgumentGenerator(true)}
+                    className="flex items-center gap-1 px-3 py-1 text-sm rounded hover:bg-gray-100"
+                  >
+                    <Gavel className="w-4 h-4" />
+                    <span>Arguments</span>
                   </button>
                 </div>
 
-                <button 
-                  onClick={() => {
-                    setShowArgumentGenerator(true);
-                    generateArguments();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 border rounded-full text-sm font-medium hover:bg-gray-50 mb-4"
-                >
-                  <Gavel className="w-4 h-4" />
-                  <span>Generate Arguments</span>
-                </button>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                    <h4 className="font-medium mb-2">Key Facts</h4>
-                    <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
-                      <li>Plaintiff claims breach of contract</li>
-                      <li>Defendant alleges misrepresentation</li>
-                      <li>Contract signed on 15/03/2022</li>
-                    </ul>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      placeholder="Add a new note..."
+                      className="flex-1 p-2 border rounded text-sm"
+                      onKeyDown={(e) => e.key === 'Enter' && addNote()}
+                    />
+                    <button
+                      onClick={addNote}
+                      className="px-3 py-2 bg-blue-500 text-white rounded text-sm font-medium hover:bg-blue-600"
+                    >
+                      Add
+                    </button>
                   </div>
 
-                  <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                    <h4 className="font-medium mb-2">Legal Issues</h4>
-                    <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
-                      <li>Was there a valid contract?</li>
-                      <li>Did defendant materially breach?</li>
-                      <li>Applicable remedies</li>
-                    </ul>
-                  </div>
-
-                  <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                    <h4 className="font-medium mb-2">Case Strategy</h4>
-                    <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
-                      <li>Focus on defendant&apos;s admissions</li>
-                      <li>Request internal communications</li>
-                      <li>Prepare for summary judgment</li>
-                    </ul>
-                  </div>
-
-                  <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                    <h4 className="font-medium mb-2">Next Steps</h4>
-                    <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
-                      <li>Draft discovery requests</li>
-                      <li>Schedule client meeting</li>
-                      <li>Research similar cases</li>
-                    </ul>
+                  <div className="space-y-2">
+                    {notes
+                      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                      .map((note) => (
+                        <div key={note.id} className="border rounded-lg p-3 bg-white group">
+                          <div className="flex justify-between">
+                            <p className="text-sm">{note.content}</p>
+                            <button
+                              onClick={() => deleteNote(note.id)}
+                              className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-gray-100 rounded"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(note.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                      ))}
                   </div>
                 </div>
               </>
             )}
+          </div>
+
+          {/* Simplified Timeline at the bottom */}
+          <div className="border-t p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-medium">Case Timeline</h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newEventTitle}
+                  onChange={(e) => setNewEventTitle(e.target.value)}
+                  placeholder="Add event"
+                  className="p-2 border rounded text-sm w-32"
+                  onKeyDown={(e) => e.key === 'Enter' && addTimelineEvent()}
+                />
+                <input
+                  type="date"
+                  value={newEventDate}
+                  onChange={(e) => setNewEventDate(e.target.value)}
+                  className="p-2 border rounded text-sm w-32"
+                />
+                <button
+                  onClick={addTimelineEvent}
+                  className="p-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <ul className="space-y-1">
+              {timelineEvents
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .map((event) => (
+                  <li 
+                    key={event.id} 
+                    className={`flex items-center gap-2 p-2 rounded cursor-pointer ${event.completed ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
+                    onClick={() => toggleEventCompletion(event.id)}
+                  >
+                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${event.completed ? 'bg-green-100 border-green-300' : 'border-gray-300'}`}>
+                      {event.completed && <Check className="w-3 h-3 text-green-500" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className={`text-sm ${event.completed ? 'line-through text-gray-500' : ''}`}>
+                        {event.title}
+                      </p>
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(event.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteTimelineEvent(event.id);
+                      }}
+                      className="p-1 text-red-500 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </li>
+                ))}
+            </ul>
           </div>
         </div>
       </div>
@@ -805,7 +934,7 @@ export default function NotebookApp() {
               >
                 Cancel
               </button>
-              <button
+              <button 
                 onClick={() => deleteItem(itemToDelete.item, itemToDelete.path)}
                 className="px-4 py-2 bg-red-500 text-white rounded-md text-sm font-medium hover:bg-red-600"
               >
