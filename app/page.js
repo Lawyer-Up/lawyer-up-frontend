@@ -13,6 +13,7 @@ import {
   ChevronDown,
   MoreVertical
 } from "lucide-react";
+import Link from 'next/link';
 
 export default function NotebookLM() {
   return (
@@ -100,8 +101,10 @@ export default function NotebookLM() {
             </div>
 
             <div className="absolute bottom-4 left-4 right-4">
-              <h3 className="text-lg font-medium text-gray-800 mb-1">Untitled notebook</h3>
-              <p className="text-sm text-gray-600">18 Apr 2025 · 0 sources</p>
+              <Link href="/workspace">
+                <h3 className="text-lg font-medium text-gray-800 mb-1">Untitled notebook</h3>
+                <p className="text-sm text-gray-600">18 Apr 2025 · 0 sources</p>
+              </Link>
             </div>
           </div>
         </div>
