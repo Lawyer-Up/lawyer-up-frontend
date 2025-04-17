@@ -76,7 +76,52 @@ export default function NotebookApp() {
               </button>
             </div>
 
-            <div className="flex flex-col items-center justify-center py-16 text-center text-gray-500">
+            <div className="space-y-3">
+              {/* Example Source 1 */}
+              <div className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <div className="flex-1">
+                  <h4 className="font-medium">Case Brief: Smith v. Jones</h4>
+                  <p className="text-sm text-gray-600 mt-1">
+                    2023 Supreme Court ruling on intellectual property rights
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 rounded border-gray-300 text-blue-600"
+                />
+              </div>
+
+              {/* Example Source 2 */}
+              <div className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <div className="flex-1">
+                  <h4 className="font-medium">Legal Memo: Contract Analysis</h4>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Detailed review of client&apos;s employment agreement terms
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 rounded border-gray-300 text-blue-600"
+                />
+              </div>
+
+              {/* Example Source 3 */}
+              <div className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <div className="flex-1">
+                  <h4 className="font-medium">Statute: Title VII</h4>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Civil Rights Act of 1964, employment discrimination
+                    provisions
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  className="w-5 h-5 rounded border-gray-300 text-blue-600"
+                />
+              </div>
+            </div>
+
+            {/* <div className="flex flex-col items-center justify-center py-16 text-center text-gray-500">
               <div className="w-16 h-16 mb-4 text-gray-300">
                 <FileText className="w-full h-full" />
               </div>
@@ -85,7 +130,7 @@ export default function NotebookApp() {
                 Click Add source above to add PDFs, websites, text, videos, or
                 audio files. Or import a file directly from Google Drive.
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -199,69 +244,44 @@ export default function NotebookApp() {
             </button>
 
             <div className="grid grid-cols-2 gap-2">
-              <button className="flex items-center gap-2 p-3 border rounded-lg text-sm hover:bg-gray-50">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-gray-400"
-                >
-                  <path
-                    d="M12 6.25278V19.2528M12 6.25278L6.75 10.5028M12 6.25278L17.25 10.5028"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span>Study guide</span>
-              </button>
-              <button className="flex items-center gap-2 p-3 border rounded-lg text-sm hover:bg-gray-50">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-gray-400"
-                >
-                  <path
-                    d="M8 6H16M8 10H16M8 14H11M6 22H18C19.1046 22 20 21.1046 20 20V4C20 2.89543 19.1046 2 18 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span>Briefing doc</span>
-              </button>
-              <button className="flex items-center gap-2 p-3 border rounded-lg text-sm hover:bg-gray-50">
-                <MessageSquare className="w-5 h-5 text-gray-400" />
-                <span>FAQ</span>
-              </button>
-              <button className="flex items-center gap-2 p-3 border rounded-lg text-sm hover:bg-gray-50">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-gray-400"
-                >
-                  <path
-                    d="M2 12H5M5 12V18C5 19.1046 5.89543 20 7 20H17C18.1046 20 19 19.1046 19 18V12M19 12H22M19 12V6C19 4.89543 18.1046 4 17 4H7C5.89543 4 5 4.89543 5 6V12M12 8V16M8 12H16"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <span>Timeline</span>
-              </button>
+              <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                <h4 className="font-medium mb-2">Key Facts</h4>
+                <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
+                  <li>Plaintiff claims breach of contract</li>
+                  <li>Defendant alleges misrepresentation</li>
+                  <li>Contract signed on 15/03/2022</li>
+                </ul>
+              </div>
+
+              <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                <h4 className="font-medium mb-2">Legal Issues</h4>
+                <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
+                  <li>Was there a valid contract?</li>
+                  <li>Did defendant materially breach?</li>
+                  <li>Applicable remedies</li>
+                </ul>
+              </div>
+
+              <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                <h4 className="font-medium mb-2">Case Strategy</h4>
+                <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
+                  <li>Focus on defendant&apos;s admissions</li>
+                  <li>Request internal communications</li>
+                  <li>Prepare for summary judgment</li>
+                </ul>
+              </div>
+
+              <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                <h4 className="font-medium mb-2">Next Steps</h4>
+                <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
+                  <li>Draft discovery requests</li>
+                  <li>Schedule client meeting</li>
+                  <li>Research similar cases</li>
+                </ul>
+              </div>
             </div>
 
-            <div className="flex flex-col items-center justify-center py-8 text-center text-gray-500">
+            {/* <div className="flex flex-col items-center justify-center py-8 text-center text-gray-500">
               <div className="w-16 h-16 mb-4 text-gray-300">
                 <FileText className="w-full h-full" />
               </div>
@@ -270,7 +290,7 @@ export default function NotebookApp() {
                 Save a chat message to create a new note, or click Add note
                 above.
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
