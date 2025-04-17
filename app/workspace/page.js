@@ -16,67 +16,102 @@ import {
   FolderOpen,
   X,
   ChevronDown,
+  Edit,
+  Save,
+  FileInput,
+  FilePlus,
+  Trash2,
+  Gavel,
 } from "lucide-react";
 import { useState } from "react";
 
 export default function NotebookApp() {
-  const [showFileExplorer, setShowFileExplorer] = useState(false);
+  const [showFileExplorer, setShowFileExplorer] = useState(true);
   const [openFiles, setOpenFiles] = useState([]);
   const [activeFileIndex, setActiveFileIndex] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
-  
-  const fileStructure = [
+  const [editMode, setEditMode] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
+  const [fileStructure, setFileStructure] = useState([
     {
       name: "Case",
       type: "folder",
       isOpen: true,
       children: [
-        { name: "FIR", type: "file", content: "This is the First Information Report content." },
-        { name: "Past Crimes", type: "file", content: "History of past crimes related to this case." },
-        { name: "Client Details", type: "file", content: "Personal and contact information about the client." },
+        { name: "Bail", type: "file", content: "This is the Bail Template." },
+        { name: "Client Intake Form", type: "file", content: "Crime scene photographs." },
+        { name: "Civil Suit", type: "file", content: "Relevant legal documents." },
+        { name: "Writ Petition", type: "file", content: "Detailed forensic analysis." },
+        { name: "Power of Attorney", type: "file", content: "Detailed forensic analysis." }
       ]
-    },
-  ];
-  
+    }
+  ]);
+  const [newItemType, setNewItemType] = useState(null);
+  const [newItemName, setNewItemName] = useState('');
+  const [addingItemPath, setAddingItemPath] = useState([]);
+  const [showFileOptions, setShowFileOptions] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [showArgumentGenerator, setShowArgumentGenerator] = useState(false);
+  const [argumentPoints, setArgumentPoints] = useState([]);
+  const [isGeneratingArguments, setIsGeneratingArguments] = useState(false);
+
+  const generateArguments = () => {
+    setIsGeneratingArguments(true);
+    
+    // Simulate analyzing the active file content
+    setTimeout(() => {
+      const exampleArguments = [
+        "Establish duty of care between the parties based on contractual relationship",
+        "Demonstrate breach of duty through documented communications",
+        "Show causation between breach and financial harm with accounting records",
+        "Quantify damages using financial statements and expert testimony"
+      ];
+      
+      setArgumentPoints(exampleArguments);
+      setIsGeneratingArguments(false);
+    }, 1500);
+  };
+
+  const addArgumentToNotes = (point) => {
+    setMessages([...messages, { sender: 'system', text: `Argument Point: ${point}` }]);
+  };
+
   const toggleFileExplorer = () => {
     setShowFileExplorer(!showFileExplorer);
+    cancelAddingItem();
   };
   
   const openFile = (file) => {
-    // Check if file is already open
     const existingFileIndex = openFiles.findIndex(f => f.name === file.name);
     
     if (existingFileIndex >= 0) {
-      // If file is already open, just activate it
       setActiveFileIndex(existingFileIndex);
+      setEditedContent(openFiles[existingFileIndex].content);
     } else {
-      // Add file to openFiles and set it as active
       setOpenFiles([...openFiles, file]);
       setActiveFileIndex(openFiles.length);
+      setEditedContent(file.content);
     }
+    setEditMode(false);
   };
 
   const closeFile = (index, e) => {
-    e.stopPropagation(); // Prevent tab selection when closing
+    e?.stopPropagation();
     
-    // Create a new array without the closed file
     const newOpenFiles = [...openFiles];
     newOpenFiles.splice(index, 1);
     setOpenFiles(newOpenFiles);
     
-    // Adjust activeFileIndex if needed
     if (activeFileIndex === index) {
-      // If we closed the active file
       if (newOpenFiles.length > 0) {
-        // Set active to the next file, or the last file if we closed the last tab
         setActiveFileIndex(index >= newOpenFiles.length ? newOpenFiles.length - 1 : index);
+        setEditedContent(newOpenFiles[index >= newOpenFiles.length ? newOpenFiles.length - 1 : index].content);
       } else {
-        // No files left open
         setActiveFileIndex(null);
+        setEditedContent('');
       }
     } else if (activeFileIndex > index) {
-      // If we closed a file before the active one, adjust the index
       setActiveFileIndex(activeFileIndex - 1);
     }
   };
@@ -87,7 +122,6 @@ export default function NotebookApp() {
       setMessages([...messages, { sender: 'user', text: inputValue }]);
       setInputValue('');
       
-      // Add simulated response after 1 second
       setTimeout(() => {
         setMessages(prev => [...prev, { sender: 'system', text: 'I\'m analyzing your request...' }]);
       }, 1000);
@@ -97,13 +131,143 @@ export default function NotebookApp() {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setMessages([...messages, { sender: 'system', text: `Uploaded file: ${file.name}` }]);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target.result;
+        const newFile = {
+          name: file.name,
+          type: 'file',
+          content: content
+        };
+        
+        setOpenFiles([...openFiles, newFile]);
+        setActiveFileIndex(openFiles.length);
+        setEditedContent(content);
+        setFileStructure([...fileStructure, newFile]);
+        setMessages([...messages, { sender: 'system', text: `Uploaded file: ${file.name}` }]);
+      };
+      reader.readAsText(file);
     }
+    setShowFileOptions(false);
   };
 
-  const FileExplorer = ({ items }) => {
+  const createNewTextFile = () => {
+    const fileName = `New Document ${openFiles.length + 1}.txt`;
+    const newFile = {
+      name: fileName,
+      type: 'file',
+      content: ''
+    };
+    
+    setOpenFiles([...openFiles, newFile]);
+    setActiveFileIndex(openFiles.length);
+    setEditedContent('');
+    setFileStructure([...fileStructure, newFile]);
+    setEditMode(true);
+    setShowFileOptions(false);
+  };
+
+  const toggleEditMode = () => {
+    if (editMode) {
+      const updatedFiles = [...openFiles];
+      updatedFiles[activeFileIndex].content = editedContent;
+      setOpenFiles(updatedFiles);
+    }
+    setEditMode(!editMode);
+  };
+
+  const startAddingItem = (type, path = []) => {
+    setNewItemType(type);
+    setNewItemName('');
+    setAddingItemPath(path);
+  };
+
+  const cancelAddingItem = () => {
+    setNewItemType(null);
+    setNewItemName('');
+    setAddingItemPath([]);
+  };
+
+  const confirmAddItem = () => {
+    if (!newItemName.trim()) return;
+
+    const newItem = {
+      name: newItemName.trim(),
+      type: newItemType,
+      ...(newItemType === 'file' ? { content: '' } : { children: [] })
+    };
+
+    const updateStructure = (items, pathIndex = 0) => {
+      return items.map(item => {
+        if (pathIndex < addingItemPath.length && item.name === addingItemPath[pathIndex]) {
+          if (item.type === 'folder') {
+            return {
+              ...item,
+              children: pathIndex === addingItemPath.length - 1 
+                ? [...(item.children || []), newItem] 
+                : updateStructure(item.children || [], pathIndex + 1)
+            };
+          }
+        }
+        return item;
+      });
+    };
+
+    if (addingItemPath.length === 0) {
+      setFileStructure([...fileStructure, newItem]);
+    } else {
+      setFileStructure(updateStructure(fileStructure));
+    }
+
+    cancelAddingItem();
+  };
+
+  const deleteItem = (item, path = []) => {
+    const updateStructure = (items) => {
+      return items.filter(i => {
+        if (i.name === item.name && i.type === item.type) {
+          const fileIndex = openFiles.findIndex(f => f.name === item.name);
+          if (fileIndex >= 0) {
+            closeFile(fileIndex);
+          }
+          return false;
+        }
+        if (i.type === 'folder' && i.children) {
+          i.children = updateStructure(i.children);
+        }
+        return true;
+      });
+    };
+
+    if (path.length === 0) {
+      setFileStructure(updateStructure(fileStructure));
+    } else {
+      const updateNestedStructure = (items, pathIndex = 0) => {
+        return items.map(i => {
+          if (pathIndex < path.length && i.name === path[pathIndex]) {
+            if (i.type === 'folder') {
+              return {
+                ...i,
+                children: pathIndex === path.length - 1 
+                  ? updateStructure(i.children || [])
+                  : updateNestedStructure(i.children || [], pathIndex + 1)
+              };
+            }
+          }
+          return i;
+        });
+      };
+      setFileStructure(updateNestedStructure(fileStructure));
+    }
+
+    setItemToDelete(null);
+  };
+
+  const FileExplorer = ({ items, path = [] }) => {
     const [expandedFolders, setExpandedFolders] = useState({
-      Case: true
+      Case: true,
+      "Legal Research": false,
+      "Correspondence": false
     });
     
     const toggleFolder = (folderName) => {
@@ -119,34 +283,116 @@ export default function NotebookApp() {
           <div key={index}>
             {item.type === 'folder' ? (
               <div>
-                <div 
-                  className="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 rounded cursor-pointer"
-                  onClick={() => toggleFolder(item.name)}
-                >
-                  <ChevronDown className={`w-4 h-4 transition-transform ${expandedFolders[item.name] ? '' : '-rotate-90'}`} />
-                  {expandedFolders[item.name] ? 
-                    <FolderOpen className="w-4 h-4 text-blue-500" /> : 
-                    <Folder className="w-4 h-4 text-blue-500" />
-                  }
-                  <span className="text-sm">{item.name}</span>
+                <div className="group flex items-center justify-between gap-2 px-2 py-1 hover:bg-gray-100 rounded cursor-pointer">
+                  <div 
+                    className="flex items-center gap-2 flex-1"
+                    onClick={() => toggleFolder(item.name)}
+                  >
+                    <ChevronDown className={`w-4 h-4 transition-transform ${expandedFolders[item.name] ? '' : '-rotate-90'}`} />
+                    {expandedFolders[item.name] ? 
+                      <FolderOpen className="w-4 h-4 text-blue-500" /> : 
+                      <Folder className="w-4 h-4 text-blue-500" />
+                    }
+                    <span className="text-sm">{item.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                    <button 
+                      className="p-1 hover:bg-gray-200 rounded"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startAddingItem('folder', [...path, item.name]);
+                      }}
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                    <button 
+                      className="p-1 hover:bg-gray-200 rounded text-red-500"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setItemToDelete({ item, path: [...path, item.name] });
+                      }}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
                 {expandedFolders[item.name] && item.children && (
-                  <div className="ml-6">
-                    <FileExplorer items={item.children} />
+                  <div className="ml-6 relative">
+                    <FileExplorer items={item.children} path={[...path, item.name]} />
+                    {addingItemPath.length === path.length + 1 && 
+                     addingItemPath.every((name, i) => name === [...path, item.name][i]) && (
+                      <div className="flex items-center gap-1 ml-6 mt-1">
+                        <button 
+                          className="p-1 hover:bg-gray-200 rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startAddingItem('file', [...path, item.name]);
+                          }}
+                        >
+                          <FileText className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             ) : (
-              <div 
-                className="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 rounded cursor-pointer ml-6"
-                onClick={() => openFile(item)}
-              >
-                <FileText className="w-4 h-4 text-gray-500" />
-                <span className="text-sm">{item.name}</span>
+              <div className="group flex items-center justify-between gap-2 px-2 py-1 hover:bg-gray-100 rounded cursor-pointer ml-6">
+                <div 
+                  className="flex items-center gap-2 flex-1"
+                  onClick={() => openFile(item)}
+                >
+                  <FileText className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm">{item.name}</span>
+                </div>
+                <button 
+                  className="p-1 hover:bg-gray-200 rounded text-red-500 opacity-0 group-hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setItemToDelete({ item, path: [...path, item.name] });
+                  }}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
               </div>
             )}
           </div>
         ))}
+        
+        {newItemType && addingItemPath.length === path.length && 
+         addingItemPath.every((name, i) => name === path[i]) && (
+          <div className="ml-6 mt-1 flex items-center gap-2">
+            {newItemType === 'folder' ? (
+              <Folder className="w-4 h-4 text-blue-500" />
+            ) : (
+              <FileText className="w-4 h-4 text-gray-500" />
+            )}
+            <input
+              type="text"
+              value={newItemName}
+              onChange={(e) => setNewItemName(e.target.value)}
+              placeholder={`${newItemType} name...`}
+              className="flex-1 text-sm px-2 py-1 border rounded outline-none"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') confirmAddItem();
+                if (e.key === 'Escape') cancelAddingItem();
+              }}
+            />
+            <button 
+              onClick={confirmAddItem}
+              className="p-1 text-green-600 hover:bg-gray-100 rounded"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={cancelAddingItem}
+              className="p-1 text-red-600 hover:bg-gray-100 rounded"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
     );
   };
@@ -178,7 +424,6 @@ export default function NotebookApp() {
       </div>
 
       <div className="flex h-[calc(100vh-64px)] relative">
-        {/* Sources Panel */}
         <div className="w-[400px] border-r flex flex-col">
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="font-medium">Sources</h2>
@@ -205,7 +450,10 @@ export default function NotebookApp() {
 
           <div className="p-4 space-y-4">
             <div className="flex gap-3">
-              <button className="flex-1 flex items-center justify-center gap-2 py-2.5 border rounded-full text-sm font-medium hover:bg-gray-50">
+              <button 
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 border rounded-full text-sm font-medium hover:bg-gray-50"
+                onClick={() => startAddingItem('folder')}
+              >
                 <Plus className="w-4 h-4" />
                 Add
               </button>
@@ -218,140 +466,167 @@ export default function NotebookApp() {
               </button>
             </div>
 
-            {/* File explorer or sources */}
             {showFileExplorer ? (
               <div className="border rounded-lg overflow-hidden">
-                <div className="bg-gray-50 p-2 border-b">
+                <div className="bg-gray-50 p-2 border-b flex justify-between items-center">
                   <span className="text-sm font-medium">File Explorer</span>
+                  {!newItemType && (
+                    <button 
+                      className="p-1 hover:bg-gray-200 rounded"
+                      onClick={() => startAddingItem('folder')}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
                 <FileExplorer items={fileStructure} />
               </div>
             ) : (
-              <div className="space-y-3">
-                {/* Example Source 1 */}
-                <div className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <div className="flex-1">
-                    <h4 className="font-medium">Case Brief: Smith v. Jones</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      2023 Supreme Court ruling on intellectual property rights
-                    </p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 rounded border-gray-300 text-blue-600"
-                  />
-                </div>
-
-                {/* Example Source 2 */}
-                <div className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <div className="flex-1">
-                    <h4 className="font-medium">Legal Memo: Contract Analysis</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Detailed review of client&apos;s employment agreement terms
-                    </p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 rounded border-gray-300 text-blue-600"
-                  />
-                </div>
-
-                {/* Example Source 3 */}
-                <div className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <div className="flex-1">
-                    <h4 className="font-medium">Statute: Title VII</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Civil Rights Act of 1964, employment discrimination
-                      provisions
-                    </p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 rounded border-gray-300 text-blue-600"
-                  />
-                </div>
-              </div>
+              <div className="space-y-3"></div>
             )}
           </div>
+          {openFiles.length > 0 && (
+              <form onSubmit={handleSendMessage} className="border rounded-lg p-3">
+                <div className="flex items-center gap-2 border rounded-full p-1 pr-2">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Type your message..."
+                    className="flex-1 px-3 py-1.5 text-sm bg-transparent outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              </form>
+            )}
         </div>
 
         <div className="flex-1 border-r flex flex-col">
-          {/* Tabs Bar */}
-          {openFiles.length > 0 && (
-            <div className="flex items-center border-b overflow-x-auto">
-              {openFiles.map((file, index) => (
-                <div 
-                  key={index}
-                  className={`flex items-center px-3 py-2 border-r hover:bg-gray-50 cursor-pointer ${
-                    activeFileIndex === index ? 'bg-gray-100' : ''
-                  }`}
-                  onClick={() => setActiveFileIndex(index)}
-                >
-                  <FileText className="w-4 h-4 text-gray-500 mr-2" />
-                  <span className="text-sm">{file.name}</span>
-                  <button 
-                    className="ml-2 p-1 hover:bg-gray-200 rounded-full"
-                    onClick={(e) => closeFile(index, e)}
+          {activeFileIndex !== null ? (
+            <>
+              <div className="flex items-center border-b overflow-x-auto">
+                {openFiles.map((file, index) => (
+                  <div 
+                    key={index}
+                    className={`flex items-center px-3 py-2 border-r hover:bg-gray-50 cursor-pointer ${
+                      activeFileIndex === index ? 'bg-gray-100' : ''
+                    }`}
+                    onClick={() => setActiveFileIndex(index)}
                   >
-                    <X className="w-3 h-3" />
+                    <FileText className="w-4 h-4 text-gray-500 mr-2" />
+                    <span className="text-sm">{file.name}</span>
+                    <button 
+                      className="ml-2 p-1 hover:bg-gray-200 rounded-full"
+                      onClick={(e) => closeFile(index, e)}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="flex flex-col h-full">
+                <div className="p-2 border-b flex justify-end gap-2">
+                  <button 
+                    onClick={() => {
+                      setShowArgumentGenerator(!showArgumentGenerator);
+                      if (!showArgumentGenerator) {
+                        generateArguments();
+                      }
+                    }}
+                    className="flex items-center gap-1 px-3 py-1 text-sm rounded hover:bg-gray-100"
+                  >
+                    <Gavel className="w-4 h-4" />
+                    <span>Arguments</span>
+                  </button>
+                  <button 
+                    onClick={toggleEditMode}
+                    className="flex items-center gap-1 px-3 py-1 text-sm rounded hover:bg-gray-100"
+                  >
+                    {editMode ? (
+                      <>
+                        <Save className="w-4 h-4" />
+                        <span>Save</span>
+                      </>
+                    ) : (
+                      <>
+                        <Edit className="w-4 h-4" />
+                        <span>Edit</span>
+                      </>
+                    )}
                   </button>
                 </div>
-              ))}
-            </div>
-          )}
-          
-          {/* File Content or Chat */}
-          {activeFileIndex !== null ? (
-            <div className="p-4 flex-1 font-mono text-sm bg-gray-50 overflow-auto">
-              <pre>{openFiles[activeFileIndex].content}</pre>
-            </div>
+                <div className="p-4 flex-1 font-mono text-sm bg-gray-50 overflow-auto">
+                  {editMode ? (
+                    <textarea
+                      value={editedContent}
+                      onChange={(e) => setEditedContent(e.target.value)}
+                      className="w-full h-full p-2 border rounded bg-white"
+                    />
+                  ) : (
+                    <pre>{openFiles[activeFileIndex].content}</pre>
+                  )}
+                </div>
+              </div>
+            </>
           ) : (
-            <>
+            <div className="flex flex-col h-full">
               <div className="p-4 border-b">
                 <h2 className="font-medium">Files</h2>
               </div>
 
-              <div className="flex-1 flex flex-col p-4 mb-16 overflow-y-auto">
-                {messages.length > 0 ? (
-                  <div className="space-y-4">
-                    {messages.map((msg, i) => (
-                      <div 
-                        key={i} 
-                        className={`p-3 rounded-lg ${msg.sender === 'user' ? 'bg-blue-50' : 'bg-gray-50'}`}
-                      >
-                        <p>{msg.text}</p>
+              <div className="flex-1 flex flex-col items-center justify-center p-4 mb-16 overflow-y-auto">
+                {showFileOptions ? (
+                  <div className="w-full max-w-md space-y-4">
+                    <button
+                      onClick={createNewTextFile}
+                      className="w-full flex items-center justify-center gap-3 p-4 border rounded-lg hover:bg-gray-50"
+                    >
+                      <FilePlus className="w-5 h-5 text-blue-500" />
+                      <div className="text-left">
+                        <h3 className="font-medium">Create New Text File</h3>
+                        <p className="text-sm text-gray-500">Start with a blank document</p>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full">
-                    <label className="cursor-pointer">
-                      <input 
-                        type="file" 
-                        className="hidden" 
+                    </button>
+                    <label className="w-full flex items-center justify-center gap-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <FileInput className="w-5 h-5 text-blue-500" />
+                      <div className="text-left">
+                        <h3 className="font-medium">Upload from Device</h3>
+                        <p className="text-sm text-gray-500">Upload an existing document</p>
+                      </div>
+                      <input
+                        type="file"
+                        className="hidden"
                         onChange={handleFileUpload}
                         id="file-upload"
                       />
-                      <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                        <Upload className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <p className="text-lg font-medium mb-2">Upload a document to get started</p>
-                      <p className="text-sm text-gray-500 mb-4">PDFs, Word docs, or text files</p>
-                      <button 
-                        className="px-5 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700"
-                        onClick={() => {
-                          if (showFileExplorer) {
-                            // If file explorer is already open, do nothing
-                          } else {
-                            // Open file explorer
-                            setShowFileExplorer(true);
-                          }
-                        }}
-                      >
-                        Select File
-                      </button>
                     </label>
+                    <button
+                      onClick={() => setShowFileOptions(false)}
+                      className="mt-4 text-sm text-gray-500 hover:text-gray-700"
+                    >
+                      Cancel
+                    </button>
                   </div>
+                ) : (
+                  <>
+                    <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                      <Upload className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <p className="text-lg font-medium mb-2">Upload a document to get started</p>
+                    <p className="text-sm text-gray-500 mb-4">PDFs, Word docs, or text files</p>
+                    <button 
+                      className="px-5 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700"
+                      onClick={() => setShowFileOptions(true)}
+                    >
+                      Select File
+                    </button>
+                  </>
                 )}
               </div>
 
@@ -372,11 +647,10 @@ export default function NotebookApp() {
                   </button>
                 </div>
               </form>
-            </>
+            </div>
           )}
         </div>
 
-        {/* Studio Panel */}
         <div className="w-[400px] flex flex-col">
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="font-medium">Studio</h2>
@@ -401,60 +675,146 @@ export default function NotebookApp() {
             </button>
           </div>
 
-          {/* Studio Content */}
           <div className="p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium">Notes</h3>
-              <button className="p-1 hover:bg-gray-100 rounded">
-                <MoreVertical className="w-5 h-5" />
-              </button>
-            </div>
-
-            <button className="w-full flex items-center justify-center gap-2 py-2.5 border rounded-full text-sm font-medium hover:bg-gray-50 mb-4">
-              <Plus className="w-4 h-4" />
-              Add note
-            </button>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                <h4 className="font-medium mb-2">Key Facts</h4>
-                <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
-                  <li>Plaintiff claims breach of contract</li>
-                  <li>Defendant alleges misrepresentation</li>
-                  <li>Contract signed on 15/03/2022</li>
-                </ul>
+            {showArgumentGenerator ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium">Argument Generator</h3>
+                  <button 
+                    onClick={() => setShowArgumentGenerator(false)}
+                    className="p-1 hover:bg-gray-100 rounded"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <h4 className="font-medium mb-2">Analyzing: {openFiles[activeFileIndex]?.name || 'Current Document'}</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Based on the document content, here are potential legal arguments:
+                  </p>
+                  
+                  {isGeneratingArguments ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-pulse flex space-x-2">
+                        <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                        <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                        <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <ul className="space-y-3">
+                      {argumentPoints.map((point, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <div className="flex-1 p-3 bg-white border rounded text-sm">
+                            {point}
+                          </div>
+                          <button
+                            onClick={() => addArgumentToNotes(point)}
+                            className="p-2 text-blue-500 hover:bg-gray-100 rounded"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                
+                <div className="border-t pt-4">
+                  <button
+                    onClick={generateArguments}
+                    className="w-full py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600"
+                  >
+                    Regenerate Arguments
+                  </button>
+                </div>
               </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium">Notes</h3>
+                  <button className="p-1 hover:bg-gray-100 rounded">
+                    <MoreVertical className="w-5 h-5" />
+                  </button>
+                </div>
 
-              <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                <h4 className="font-medium mb-2">Legal Issues</h4>
-                <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
-                  <li>Was there a valid contract?</li>
-                  <li>Did defendant materially breach?</li>
-                  <li>Applicable remedies</li>
-                </ul>
-              </div>
+                <button 
+                  onClick={() => {
+                    setShowArgumentGenerator(true);
+                    generateArguments();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 border rounded-full text-sm font-medium hover:bg-gray-50 mb-4"
+                >
+                  <Gavel className="w-4 h-4" />
+                  <span>Generate Arguments</span>
+                </button>
 
-              <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                <h4 className="font-medium mb-2">Case Strategy</h4>
-                <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
-                  <li>Focus on defendant&apos;s admissions</li>
-                  <li>Request internal communications</li>
-                  <li>Prepare for summary judgment</li>
-                </ul>
-              </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                    <h4 className="font-medium mb-2">Key Facts</h4>
+                    <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
+                      <li>Plaintiff claims breach of contract</li>
+                      <li>Defendant alleges misrepresentation</li>
+                      <li>Contract signed on 15/03/2022</li>
+                    </ul>
+                  </div>
 
-              <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                <h4 className="font-medium mb-2">Next Steps</h4>
-                <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
-                  <li>Draft discovery requests</li>
-                  <li>Schedule client meeting</li>
-                  <li>Research similar cases</li>
-                </ul>
-              </div>
-            </div>
+                  <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                    <h4 className="font-medium mb-2">Legal Issues</h4>
+                    <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
+                      <li>Was there a valid contract?</li>
+                      <li>Did defendant materially breach?</li>
+                      <li>Applicable remedies</li>
+                    </ul>
+                  </div>
+
+                  <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                    <h4 className="font-medium mb-2">Case Strategy</h4>
+                    <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
+                      <li>Focus on defendant&apos;s admissions</li>
+                      <li>Request internal communications</li>
+                      <li>Prepare for summary judgment</li>
+                    </ul>
+                  </div>
+
+                  <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                    <h4 className="font-medium mb-2">Next Steps</h4>
+                    <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
+                      <li>Draft discovery requests</li>
+                      <li>Schedule client meeting</li>
+                      <li>Research similar cases</li>
+                    </ul>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
+
+      {itemToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="font-medium mb-4">Delete {itemToDelete.item.type}</h3>
+            <p className="mb-6">Are you sure you want to delete "{itemToDelete.item.name}"? This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setItemToDelete(null)}
+                className="px-4 py-2 border rounded-md text-sm font-medium hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteItem(itemToDelete.item, itemToDelete.path)}
+                className="px-4 py-2 bg-red-500 text-white rounded-md text-sm font-medium hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
