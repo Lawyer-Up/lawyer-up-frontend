@@ -22,6 +22,8 @@ import {
   export default function NotebookApp() {
     const [showFileExplorer, setShowFileExplorer] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [inputValue, setInputValue] = useState('');
     
     const fileStructure = [
       {
@@ -47,7 +49,27 @@ import {
     const openFile = (file) => {
       setSelectedFile(file);
     };
-  
+
+    const handleSendMessage = (e) => {
+      e.preventDefault();
+      if (inputValue.trim()) {
+        setMessages([...messages, { sender: 'user', text: inputValue }]);
+        setInputValue('');
+        
+        // Add simulated response after 1 second
+        setTimeout(() => {
+          setMessages(prev => [...prev, { sender: 'system', text: 'I\'m analyzing your request...' }]);
+        }, 1000);
+      }
+    };
+
+    const handleFileUpload = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        setMessages([...messages, { sender: 'system', text: `Uploaded file: ${file.name}` }]);
+      }
+    };
+
     const FileExplorer = ({ items }) => {
       const [expandedFolders, setExpandedFolders] = useState({
         src: true
@@ -252,37 +274,60 @@ import {
               <h2 className="font-medium">Chat</h2>
             </div>
   
-            <div className="flex-1 flex flex-col items-center justify-center p-4 mb-16">
-              <div className="flex flex-col items-center justify-center max-w-md text-center">
-                <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                  <Upload className="w-5 h-5 text-blue-600" />
+            <div className="flex-1 flex flex-col p-4 mb-16 overflow-y-auto">
+              {messages.length > 0 ? (
+                <div className="space-y-4">
+                  {messages.map((msg, i) => (
+                    <div 
+                      key={i} 
+                      className={`p-3 rounded-lg ${msg.sender === 'user' ? 'bg-blue-50' : 'bg-gray-50'}`}
+                    >
+                      <p>{msg.text}</p>
+                    </div>
+                  ))}
                 </div>
-                <h3 className="text-xl font-medium mb-2">
-                  Add a source to get started
-                </h3>
-                <button className="px-5 py-2.5 border rounded-full text-sm font-medium hover:bg-gray-50 mb-40">
-                  Upload a source
-                </button>
-              </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full">
+                  <label className="cursor-pointer">
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      onChange={handleFileUpload}
+                      id="file-upload"
+                    />
+                    <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                      <Upload className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <p className="text-lg font-medium mb-2">Upload a document to get started</p>
+                    <p className="text-sm text-gray-500 mb-4">PDFs, Word docs, or text files</p>
+                    <button 
+                      className="px-5 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700"
+                      onClick={() => document.getElementById('file-upload').click()}
+                    >
+                      Select File
+                    </button>
+                  </label>
+                </div>
+              )}
             </div>
   
-            <div className="p-3 border-t">
+            <form onSubmit={handleSendMessage} className="p-3 border-t">
               <div className="flex items-center gap-2 border rounded-full p-1 pr-2">
                 <input
                   type="text"
-                  placeholder="Upload a source to get started"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Type your message..."
                   className="flex-1 px-3 py-1.5 text-sm bg-transparent outline-none"
-                  disabled
                 />
-                <span className="text-xs text-gray-500">0 sources</span>
                 <button
-                  className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white disabled:bg-blue-300"
-                  disabled
+                  type="submit"
+                  className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
-            </div>
+            </form>
           </div>
   
           {/* Studio Panel */}
