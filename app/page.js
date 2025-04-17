@@ -6,14 +6,13 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {
-  Settings,
   Plus,
   Grid,
   List,
   ChevronDown,
   MoreVertical
 } from "lucide-react";
-import Link from 'next/link';
+import Link from "next/link";
 
 export default function NotebookLM() {
   return (
@@ -23,9 +22,26 @@ export default function NotebookLM() {
           <div className="w-8 h-8 mr-2 rounded-full bg-gray-800"></div>
           <h1 className="text-xl font-semibold">Lawyer</h1>
         </div>
-          <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white">H</div>
-      </header>
 
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-8 h-8 rounded-full bg-purple-600 text-white p-0"
+            >
+              H
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem asChild>
+              <Link href="/login">Login</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/signup">Sign Up</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </header>
 
       <main className="max-w-5xl mx-auto px-6 py-12">
         <h1 className="text-5xl font-bold mb-16 bg-gradient-to-r from-blue-400 to-teal-500 bg-clip-text text-transparent">
@@ -86,27 +102,27 @@ export default function NotebookLM() {
             </div>
           </div>
 
-          {/* Notebook Card */}
-          <div className="w-64 h-48 bg-[#f8f3e2] rounded-md p-4 relative">
-            <div className="absolute top-4 left-4">
-              <div className="w-6 h-6 bg-yellow-200 border border-yellow-400 flex items-center justify-center text-yellow-800">
-                📁
+          {/* Fully clickable notebook card */}
+          <Link href="/workspace">
+            <div className="w-64 h-48 bg-[#f8f3e2] rounded-md p-4 relative cursor-pointer hover:shadow-md transition">
+              <div className="absolute top-4 left-4">
+                <div className="w-6 h-6 bg-yellow-200 border border-yellow-400 flex items-center justify-center text-yellow-800">
+                  📁
+                </div>
               </div>
-            </div>
 
-            <div className="absolute top-4 right-4">
-              <Button variant="ghost" size="icon" className="h-6 w-6">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </div>
+              <div className="absolute top-4 right-4">
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </div>
 
-            <div className="absolute bottom-4 left-4 right-4">
-              <Link href="/workspace">
+              <div className="absolute bottom-4 left-4 right-4">
                 <h3 className="text-lg font-medium text-gray-800 mb-1">Untitled notebook</h3>
                 <p className="text-sm text-gray-600">18 Apr 2025 · 0 sources</p>
-              </Link>
+              </div>
             </div>
-          </div>
+          </Link>
         </div>
       </main>
     </div>
