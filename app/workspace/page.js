@@ -25,26 +25,15 @@ import {
     
     const fileStructure = [
       {
-        name: "src",
+        name: "Case",
         type: "folder",
         isOpen: true,
         children: [
-          { name: "App.jsx", type: "file", content: "// App component code here" },
-          { name: "main.jsx", type: "file", content: "// Main entry point code" },
-          { name: "index.css", type: "file", content: "/* CSS styles */" },
+          { name: "FIR", type: "file", content: "" },
+          { name: "Past Crimes", type: "file", content: "" },
+          { name: "Client Details", type: "file", content: "" },
         ]
       },
-      {
-        name: "public",
-        type: "folder",
-        isOpen: false,
-        children: [
-          { name: "index.html", type: "file", content: "<!DOCTYPE html>..." },
-          { name: "favicon.ico", type: "file", content: "// Binary content" },
-        ]
-      },
-      { name: "package.json", type: "file", content: '{\n  "name": "notebook-app",\n  "version": "1.0.0"\n}' },
-      { name: "README.md", type: "file", content: "# Notebook App\n\nA React application for legal case management." }
     ];
     
     const toggleFileExplorer = () => {
@@ -193,8 +182,8 @@ import {
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 border rounded-full text-sm font-medium hover:bg-gray-50"
                   onClick={toggleFileExplorer}
                 >
-                  {selectedFile ? <X className="w-4 h-4" /> : <File className="w-4 h-4" />}
-                  {selectedFile ? "Close" : "Files"}
+                  {showFileExplorer ? <X className="w-4 h-4" /> : <File className="w-4 h-4" />}
+                  {showFileExplorer ? "Close" : "Files"}
                 </button>
               </div>
   
