@@ -39,6 +39,9 @@ export default function NotebookLM() {
             <DropdownMenuItem asChild>
               <Link href="/signup">Sign Up</Link>
             </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/profile">Dashboard</Link>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </header>
@@ -54,10 +57,12 @@ export default function NotebookLM() {
           <div className="border-b border-gray-200 mb-4"></div>
 
           <div className="flex items-center justify-between mb-6">
+          <Link href="/case-inputs">
             <Button className="bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full">
               <Plus className="w-4 h-4 mr-2" />
               Create new
             </Button>
+            </Link>
 
             <div className="flex items-center">
 
@@ -103,3 +108,4 @@ export default function NotebookLM() {
     </div>
   );
 }
+
