@@ -1,102 +1,141 @@
 "use client"
 
-import React from "react"
+import { useState, useEffect } from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Card, CardContent } from "@/components/ui/card"
-import { MultiFileUploader } from "./multi-file-uploader"
+export function DocumentsForm({ data, updateData, onNext, onPrev, isSubmitting }) {
+  const [courtOrderFiles, setCourtOrderFiles] = useState([]);
+  const [supportingDocFiles, setSupportingDocFiles] = useState([]);
 
-export function DocumentsForm({ data, updateData, onNext, onPrev }) {
+  useEffect(() => {
+    // Initialize file lists if data is provided
+    if (data.courtOrders && data.courtOrders.length > 0) {
+      setCourtOrderFiles(data.courtOrders);
+    }
+    if (data.supportingDocs && data.supportingDocs.length > 0) {
+      setSupportingDocFiles(data.supportingDocs);
+    }
+  }, []);
+
+  const handleCourtOrderUpload = (e) => {
+    const files = Array.from(e.target.files);
+    setCourtOrderFiles((prev) => [...prev, ...files]);
+    updateData({ courtOrders: [...courtOrderFiles, ...files] });
+  };
+
+  const handleSupportingDocUpload = (e) => {
+    const files = Array.from(e.target.files);
+    setSupportingDocFiles((prev) => [...prev, ...files]);
+    updateData({ supportingDocs: [...supportingDocFiles, ...files] });
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target
-    updateData({ [name]: value })
-  }
-
-  const handleUrgencyChange = (value) => {
-    updateData({ urgency: value })
-  }
-
-  const handleFilesChange = (name,files) => {
-    updateData({ [name]: files })
-  }
-
-
+    const { name, value } = e.target;
+    updateData({ [name]: value });
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-      onNext()
-  }
+    e.preventDefault();
+    onNext();
+  };
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2 className="mb-6 text-2xl font-semibold text-gray-800">Documents & Additional Information</h2>
+      <h2 className="mb-6 text-2xl font-bold">Documents & Additional Information</h2>
 
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="pt-6">
-            <h3 className="mb-4 text-lg font-medium">Court Orders & Supporting Documents</h3>
+      <div className="mb-6">
+        <label className="mb-2 block font-medium">Court Orders</label>
+        <input
+          type="file"
+          multiple
+          onChange={handleCourtOrderUpload}
+          className="w-full rounded border border-gray-300 p-2"
+        />
+        {courtOrderFiles.length > 0 && (
+          <div className="mt-2">
+            <p className="font-medium">Selected files:</p>
+            <ul className="list-disc pl-5">
+              {courtOrderFiles.map((file, index) => (
+                <li key={index}>{file.name || file}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
 
-            <div className="space-y-6">
-              <div>
-                <Label htmlFor="courtOrders">Court Orders (if any)</Label>
-                <MultiFileUploader
-                  id="courtOrders"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  onFilesSelect={(files) => handleFilesChange("courtOrders", files)}
-                  currentFiles={data.courtOrders}
-                />
-                <p className="mt-1 text-xs text-gray-500">Upload any previous court orders related to this case</p>
-              </div>
+      <div className="mb-6">
+        <label className="mb-2 block font-medium">Supporting Documents</label>
+        <input
+          type="file"
+          multiple
+          onChange={handleSupportingDocUpload}
+          className="w-full rounded border border-gray-300 p-2"
+        />
+        {supportingDocFiles.length > 0 && (
+          <div className="mt-2">
+            <p className="font-medium">Selected files:</p>
+            <ul className="list-disc pl-5">
+              {supportingDocFiles.map((file, index) => (
+                <li key={index}>{file.name || file}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
 
-              <div>
-                <Label htmlFor="supportingDocs">Supporting Documents</Label>
-                <MultiFileUploader
-                  id="supportingDocs"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  onFilesSelect={(files) => handleFilesChange("supportingDocs", files)}
-                  currentFiles={data.supportingDocs}
-                />
-                <p className="mt-1 text-xs text-gray-500">Upload any supporting documents, evidence, or exhibits</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="mb-6">
+        <label className="mb-2 block font-medium">Legal History</label>
+        <textarea
+          name="legalHistory"
+          value={data.legalHistory}
+          onChange={handleChange}
+          className="w-full rounded border border-gray-300 p-2"
+          rows="3"
+        />
+      </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="legalHistory">Legal History</Label>
-          <Textarea
-            id="legalHistory"
-            name="legalHistory"
-            value={data.legalHistory}
-            onChange={handleChange}
-            placeholder="Previous legal proceedings, judgments, or settlements related to this case"
-            rows={4}
-          />
-        </div>
+      <div className="mb-6">
+        <label className="mb-2 block font-medium">Urgency</label>
+        <select
+          name="urgency"
+          value={data.urgency}
+          onChange={handleChange}
+          className="w-full rounded border border-gray-300 p-2"
+        >
+          <option value="">Select Urgency</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+          <option value="CRITICAL">Critical</option>
+        </select>
+      </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="notes">Additional Notes for Lawyer</Label>
-          <Textarea
-            id="notes"
-            name="notes"
-            value={data.notes}
-            onChange={handleChange}
-            placeholder="Any additional information or special instructions for the lawyer"
-            rows={5}
-          />
-        </div>
+      <div className="mb-6">
+        <label className="mb-2 block font-medium">Additional Notes</label>
+        <textarea
+          name="notes"
+          value={data.notes}
+          onChange={handleChange}
+          className="w-full rounded border border-gray-300 p-2"
+          rows="4"
+        />
       </div>
 
       <div className="mt-8 flex justify-between">
-        <Button type="button" variant="outline" onClick={onPrev}>
-          Previous: Case Details
-        </Button>
-        <Button type="submit">Submit Case Information</Button>
+        <button
+          type="button"
+          onClick={onPrev}
+          className="rounded bg-gray-500 px-6 py-2 text-white hover:bg-gray-600"
+        >
+          Previous
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:bg-blue-300"
+        >
+          {isSubmitting ? "Submitting..." : "Submit"}
+        </button>
       </div>
     </form>
-  )
+  );
 }

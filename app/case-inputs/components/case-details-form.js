@@ -53,16 +53,16 @@ export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
               <SelectValue placeholder="Select case type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="criminal">Criminal</SelectItem>
-              <SelectItem value="civil">Civil</SelectItem>
-              <SelectItem value="family">Family Law</SelectItem>
-              <SelectItem value="property">Property Dispute</SelectItem>
-              <SelectItem value="corporate">Corporate Law</SelectItem>
-              <SelectItem value="consumer">Consumer Protection</SelectItem>
-              <SelectItem value="labor">Labor Law</SelectItem>
-              <SelectItem value="tax">Tax Dispute</SelectItem>
-              <SelectItem value="intellectual">Intellectual Property</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="CRIMINAL">Criminal</SelectItem>
+              <SelectItem value="CIVIL">Civil</SelectItem>
+              <SelectItem value="FAMILY">Family Law</SelectItem>
+              <SelectItem value="PROPERTY">Property Dispute</SelectItem>
+              <SelectItem value="CORPORATE">Corporate Law</SelectItem>
+              <SelectItem value="CONSUMER">Consumer Protection</SelectItem>
+              <SelectItem value="LABOR">Labor Law</SelectItem>
+              <SelectItem value="TAX">Tax Dispute</SelectItem>
+              <SelectItem value="INTELLECTUAL">Intellectual Property</SelectItem>
+              <SelectItem value="OTHER">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>

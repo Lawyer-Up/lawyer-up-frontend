@@ -4,28 +4,39 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Mail, Lock, Phone, ArrowRight } from "lucide-react";
+import { User, Mail, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import AuthService from "@/app/services/auth";
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
-    otp: "",
     password: "",
   });
-  const [otpSent, setOtpSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const handleSendOtp = () => {
-    // Handle OTP sending logic here
-    setOtpSent(true);
-  };
-
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    // Handle signup logic here
-    console.log("Signup attempt:", formData);
+    setLoading(true);
+    setError("");
+
+    try {
+      await AuthService.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      router.push("/home");
+    } catch (error) {
+      setError(error.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,6 +48,12 @@ export default function SignupPage() {
             Sign up to get started with our service
           </p>
         </div>
+
+        {error && (
+          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSignup} className="mt-8 space-y-6">
           <div className="space-y-4">
@@ -76,49 +93,6 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+1 (555) 000-0000"
-                  className="pl-10"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="absolute right-0 top-0"
-                  onClick={handleSendOtp}
-                  disabled={otpSent}
-                >
-                  {otpSent ? "OTP Sent" : "Send OTP"}
-                </Button>
-              </div>
-            </div>
-
-            {otpSent && (
-              <div className="space-y-2">
-                <Label htmlFor="otp">OTP Verification</Label>
-                <Input
-                  id="otp"
-                  placeholder="Enter OTP"
-                  maxLength={6}
-                  value={formData.otp}
-                  onChange={(e) =>
-                    setFormData({ ...formData, otp: e.target.value })
-                  }
-                  required
-                />
-              </div>
-            )}
-
-            <div className="space-y-2">
               <Label htmlFor="password">Create Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
@@ -135,12 +109,15 @@ export default function SignupPage() {
               </div>
             </div>
           </div>
-          <Link href="/home">
-          <Button type="submit" className="w-full">
-            Create Account
-            <ArrowRight className="ml-2 h-4 w-4" />
+
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={loading}
+          >
+            {loading ? "Creating Account..." : "Create Account"}
+            {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
           </Button>
-          </Link>
 
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}

@@ -490,29 +490,9 @@ export default function NotebookApp() {
               </div>
             )}
           </div>
-
-          {openFiles.length > 0 && (
-            <form onSubmit={handleSendMessage} className="border rounded-lg p-3">
-              <div className="flex items-center gap-2 border rounded-full p-1 pr-2">
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 px-3 py-1.5 text-sm bg-transparent outline-none"
-                />
-                <button
-                  type="submit"
-                  className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            </form>
-          )}
         </div>
 
-        {/* Main Editor Area */}
+        {/* Main Chat Area */}
         <div className="flex-1 border-r flex flex-col">
           {activeFileIndex !== null ? (
             <>
@@ -584,49 +564,38 @@ export default function NotebookApp() {
           ) : (
             <div className="flex flex-col h-full">
               <div className="p-4 border-b">
-                <h2 className="font-medium">Files</h2>
+                <h2 className="font-medium">Chat</h2>
               </div>
 
-              <div className="flex-1 flex flex-col items-center justify-center p-4 mb-16 overflow-y-auto">
-                {showFileOptions ? (
-                  <div className="w-full max-w-md space-y-4">
-                    <label className="w-full flex items-center justify-center gap-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <FileInput className="w-5 h-5 text-blue-500" />
-                      <div className="text-left">
-                        <h3 className="font-medium">Upload from Device</h3>
-                        <p className="text-sm text-gray-500">Upload an existing document</p>
-                      </div>
-                      <input
-                        type="file"
-                        className="hidden"
-                        onChange={handleFileUpload}
-                        id="file-upload"
-                      />
-                    </label>
-                    <button
-                      onClick={() => setShowFileOptions(false)}
-                      className="mt-4 text-sm text-gray-500 hover:text-gray-700"
-                    >
-                      Cancel
-                    </button>
+              {/* Chat Messages */}
+              <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                {messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
+                    <MessageSquare className="w-10 h-10 mb-4" />
+                    <p className="text-lg font-medium">No messages yet</p>
+                    <p className="text-sm">Start a conversation by typing below</p>
                   </div>
                 ) : (
-                  <>
-                    <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                      <Upload className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <p className="text-lg font-medium mb-2">Upload a document to get started</p>
-                    <p className="text-sm text-gray-500 mb-4">PDFs, Word docs, or text files</p>
-                    <button
-                      className="px-5 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700"
-                      onClick={() => setShowFileOptions(true)}
+                  messages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      Select File
-                    </button>
-                  </>
+                      <div
+                        className={`max-w-[80%] p-3 rounded-lg ${
+                          message.sender === 'user'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        <p>{message.text}</p>
+                      </div>
+                    </div>
+                  ))
                 )}
               </div>
 
+              {/* Chat Input */}
               <form onSubmit={handleSendMessage} className="p-3 border-t">
                 <div className="flex items-center gap-2 border rounded-full p-1 pr-2">
                   <input

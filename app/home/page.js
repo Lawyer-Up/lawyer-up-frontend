@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -6,37 +7,58 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Grid, List, ChevronDown, MoreVertical, Scale } from "lucide-react";
+import { Plus, Grid, List, ChevronDown, MoreVertical, Scale } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 
 export default function NotebookLM() {
   const [isLogin, setIsLogin] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      setIsLogin(!!token);
+    }
+  }, []);
+
+  const logout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      setIsLogin(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <header className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center">
-        <div className="w-8 h-8 mr-2 rounded-full bg-slate-800 flex items-center justify-center">
-                <Scale className="h-5 w-5 text-white" />
-              </div>
+          <div className="w-8 h-8 mr-2 rounded-full bg-slate-800 flex items-center justify-center">
+            <Scale className="h-5 w-5 text-white" />
+          </div>
           <h1 className="text-xl font-semibold">LawyerUP</h1>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="w-8 h-8 rounded-full bg-purple-600 text-white p-0"
-            >
-              H
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
+
+        {isLogin && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-8 h-8 rounded-full bg-purple-600 text-white p-0"
+              >
+                H
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
               <DropdownMenuItem asChild>
                 <Link href="/profile">Dashboard</Link>
               </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuItem onClick={logout}>
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </header>
+
       <main className="max-w-5xl mx-auto px-6 py-12">
         <h1 className="text-5xl font-bold mb-16 bg-gradient-to-r from-blue-400 to-teal-500 bg-clip-text text-transparent">
           Welcome to LawyerUP
@@ -71,7 +93,7 @@ export default function NotebookLM() {
               </DropdownMenu>
             </div>
           </div>
-          {/* Fully clickable notebook card */}
+
           <Link href="/workspace">
             <div className="w-64 h-48 bg-[#f8f3e2] rounded-md p-4 relative cursor-pointer hover:shadow-md transition">
               <div className="absolute top-4 left-4">
@@ -84,7 +106,6 @@ export default function NotebookLM() {
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </div>
-
               <div className="absolute bottom-4 left-4 right-4">
                 <h3 className="text-lg font-medium text-gray-800 mb-1">
                   Untitled notebook

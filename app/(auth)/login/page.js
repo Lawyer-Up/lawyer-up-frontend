@@ -6,15 +6,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import AuthService from "@/app/services/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login attempt:", { email, password });
+    setLoading(true);
+    setError("");
+    
+    try {
+      await AuthService.login(email, password);
+      // Redirect to home page after successful login
+      router.push("/home");
+    } catch (error) {
+      setError(error.message || "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -24,6 +39,12 @@ export default function LoginPage() {
           <h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
           <p className="text-muted-foreground mt-2">Sign in to your account</p>
         </div>
+        
+        {error && (
+          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleLogin} className="mt-8 space-y-6">
           <div className="space-y-4">
@@ -42,7 +63,7 @@ export default function LoginPage() {
                 />
               </div>
             </div>
-
+            
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
@@ -67,12 +88,15 @@ export default function LoginPage() {
               Forgot your password?
             </Link>
           </div>
-          <Link href="/home">
-          <Button type="submit" className="w-full">
-            Sign in
-            <ArrowRight className="ml-2 h-4 w-4" />
+          
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={loading}
+          >
+            {loading ? "Signing in..." : "Sign in"}
+            {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
           </Button>
-          </Link>
 
           <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
@@ -83,6 +107,5 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
-
   );
 }
