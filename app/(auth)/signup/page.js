@@ -135,11 +135,12 @@ export default function SignupPage() {
               </div>
             </div>
           </div>
-
+          <Link href="/home">
           <Button type="submit" className="w-full">
             Create Account
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
+          </Link>
 
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
