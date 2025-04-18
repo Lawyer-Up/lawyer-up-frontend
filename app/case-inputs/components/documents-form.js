@@ -11,8 +11,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { MultiFileUploader } from "./multi-file-uploader"
 
 export function DocumentsForm({ data, updateData, onNext, onPrev }) {
-  const [errors, setErrors] = useState({})
-
   const handleChange = (e) => {
     const { name, value } = e.target
     updateData({ [name]: value })
@@ -26,20 +24,11 @@ export function DocumentsForm({ data, updateData, onNext, onPrev }) {
     updateData({ [name]: files })
   }
 
-  const validate = () => {
-    const newErrors = {}
 
-    if (!data.urgency) newErrors.urgency = "Please select case urgency"
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (validate()) {
       onNext()
-    }
   }
 
   return (
@@ -87,39 +76,6 @@ export function DocumentsForm({ data, updateData, onNext, onPrev }) {
             placeholder="Previous legal proceedings, judgments, or settlements related to this case"
             rows={4}
           />
-        </div>
-
-        <div className="space-y-2">
-          <Label>
-            Case Urgency <span className="text-red-500">*</span>
-          </Label>
-          <RadioGroup value={data.urgency} onValueChange={handleUrgencyChange}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="critical" id="critical" />
-              <Label htmlFor="critical" className="font-normal">
-                Critical (Immediate attention required)
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="high" id="high" />
-              <Label htmlFor="high" className="font-normal">
-                High (Urgent but not immediate)
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="medium" id="medium" />
-              <Label htmlFor="medium" className="font-normal">
-                Medium (Standard timeline)
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="low" id="low" />
-              <Label htmlFor="low" className="font-normal">
-                Low (No immediate deadlines)
-              </Label>
-            </div>
-          </RadioGroup>
-          {errors.urgency && <p className="text-sm text-red-500">{errors.urgency}</p>}
         </div>
 
         <div className="space-y-2">

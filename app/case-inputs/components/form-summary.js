@@ -1,5 +1,5 @@
 "use client"
-
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle } from "lucide-react"
@@ -125,9 +125,11 @@ export function FormSummary({ data, onPrev }) {
         <Button type="button" variant="outline" onClick={onPrev}>
           Edit Information
         </Button>
-        <Button type="button" onClick={() => window.print()}>
-          Print Summary
+        <Link href="/workspace">
+        <Button type="button">
+          Done
         </Button>
+        </Link>
       </div>
     </div>
   )

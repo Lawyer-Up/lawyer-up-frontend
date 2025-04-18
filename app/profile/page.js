@@ -14,11 +14,9 @@ import {
 export default function Home() {
   const user = {
     name: "Sarah Anderson",
-    role: "Senior Product Manager",
+    role: "Senior Criminal Lawyer",
     email: "sarah.anderson@company.com",
     phone: "+1 (555) 123-4567",
-    location: "San Francisco, CA",
-    company: "Tech Innovations Inc.",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop",
     department: "Product",
     status: "Active",
@@ -92,14 +90,6 @@ export default function Home() {
                 <div className="flex items-center gap-3">
                   <Phone className="h-5 w-5 text-gray-500" />
                   <span>{user.phone}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-gray-500" />
-                  <span>{user.location}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Building2 className="h-5 w-5 text-gray-500" />
-                  <span>{user.company}</span>
                 </div>
               </CardContent>
             </Card>

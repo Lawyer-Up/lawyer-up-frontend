@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { FileUploader } from "./file-uploader"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 
 
 
 export function ClientInfoForm({ data, updateData, onNext }) {
-  const [errors, setErrors] = useState({})
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -24,23 +25,14 @@ export function ClientInfoForm({ data, updateData, onNext }) {
     updateData({ [name]: file })
   }
 
-  const validate = () => {
-    const newErrors = {}
-
-    if (!data.name) newErrors.name = "Name is required"
-    if (!data.age) newErrors.age = "Age is required"
-    if (!data.contact) newErrors.contact = "Contact number is required"
-    if (!data.firReport) newErrors.firReport = "FIR report is required"
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+  const handleUrgencyChange = (value) => {
+    updateData({ urgency: value })
   }
+
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (validate()) {
       onNext()
-    }
   }
 
   return (
@@ -53,7 +45,6 @@ export function ClientInfoForm({ data, updateData, onNext }) {
             Client Name <span className="text-red-500">*</span>
           </Label>
           <Input id="name" name="name" value={data.name} onChange={handleChange} placeholder="Full legal name" />
-          {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
         </div>
 
         <div className="space-y-2">
@@ -68,7 +59,6 @@ export function ClientInfoForm({ data, updateData, onNext }) {
             placeholder="Client's age"
             type="number"
           />
-          {errors.age && <p className="text-sm text-red-500">{errors.age}</p>}
         </div>
 
         <div className="space-y-2">
@@ -76,7 +66,6 @@ export function ClientInfoForm({ data, updateData, onNext }) {
             Contact Number <span className="text-red-500">*</span>
           </Label>
           <Input id="contact" name="contact" value={data.contact} onChange={handleChange} placeholder="Mobile number" />
-          {errors.contact && <p className="text-sm text-red-500">{errors.contact}</p>}
         </div>
 
         <div className="space-y-2">
@@ -115,6 +104,38 @@ export function ClientInfoForm({ data, updateData, onNext }) {
         />
       </div>
 
+      <div className="space-y-2 mt-4">
+          <Label>
+            Case Urgency <span className="text-red-500">*</span>
+          </Label>
+          <RadioGroup value={data.urgency} onValueChange={handleUrgencyChange}>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="critical" id="critical" />
+              <Label htmlFor="critical" className="font-normal">
+                Critical (Immediate attention required)
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="high" id="high" />
+              <Label htmlFor="high" className="font-normal">
+                High (Urgent but not immediate)
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="medium" id="medium" />
+              <Label htmlFor="medium" className="font-normal">
+                Medium (Standard timeline)
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="low" id="low" />
+              <Label htmlFor="low" className="font-normal">
+                Low (No immediate deadlines)
+              </Label>
+            </div>
+          </RadioGroup>
+        </div>
+
       <Card className="mt-6">
         <CardContent className="pt-6">
           <h3 className="mb-4 text-lg font-medium">Document Uploads</h3>
@@ -126,15 +147,14 @@ export function ClientInfoForm({ data, updateData, onNext }) {
               </Label>
               <FileUploader
                 id="firReport"
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                accept=".txt"
                 onFileSelect={(file) => handleFileChange("firReport", file)}
                 currentFile={data.firReport}
               />
-              {errors.firReport && <p className="text-sm text-red-500">{errors.firReport}</p>}
-              <p className="mt-1 text-xs text-gray-500">Upload a soft copy of the FIR report (PDF, Word, or Image)</p>
+              <p className="mt-1 text-xs text-gray-500">Upload a soft copy of the FIR report ( Word or txt file)</p>
             </div>
 
-            <div>
+            {/* <div>
               <Label htmlFor="idProof">ID Proof</Label>
               <FileUploader
                 id="idProof"
@@ -143,7 +163,7 @@ export function ClientInfoForm({ data, updateData, onNext }) {
                 currentFile={data.idProof}
               />
               <p className="mt-1 text-xs text-gray-500">Upload client's ID proof (Aadhaar, PAN, Voter ID, etc.)</p>
-            </div>
+            </div> */}
           </div>
         </CardContent>
       </Card>

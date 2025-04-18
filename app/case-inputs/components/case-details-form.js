@@ -12,7 +12,6 @@ import { Card, CardContent } from "@/components/ui/card"
 
 
 export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
-  const [errors, setErrors] = useState({})
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -33,23 +32,11 @@ export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
     updateData({ caseType: value })
   }
 
-  const validate = () => {
-    const newErrors = {}
-
-    if (!data.caseType) newErrors.caseType = "Case type is required"
-    if (!data.description) newErrors.description = "Case description is required"
-    if (!data.facts.date) newErrors.date = "Incident date is required"
-    if (!data.facts.place) newErrors.place = "Incident place is required"
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+  
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (validate()) {
-      onNext()
-    }
+    onNext()
   }
 
   return (
@@ -78,7 +65,6 @@ export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
-          {errors.caseType && <p className="text-sm text-red-500">{errors.caseType}</p>}
         </div>
 
         <div className="space-y-2">
@@ -93,7 +79,6 @@ export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
             placeholder="Provide a brief description of the case"
             rows={4}
           />
-          {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
         </div>
 
         <Card>
@@ -106,7 +91,6 @@ export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
                   Date of Incident <span className="text-red-500">*</span>
                 </Label>
                 <Input id="date" name="date" type="date" value={data.facts.date} onChange={handleFactsChange} />
-                {errors.date && <p className="text-sm text-red-500">{errors.date}</p>}
               </div>
 
               <div className="space-y-2">
@@ -120,7 +104,6 @@ export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
                   onChange={handleFactsChange}
                   placeholder="Location where incident occurred"
                 />
-                {errors.place && <p className="text-sm text-red-500">{errors.place}</p>}
               </div>
             </div>
 
