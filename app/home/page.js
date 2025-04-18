@@ -19,7 +19,7 @@ export default function WorkspaceGrid() {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("token");
       setIsLogin(!!token);
-      
+
       if (token) {
         fetchWorkspaces(token);
       } else {
@@ -30,20 +30,20 @@ export default function WorkspaceGrid() {
 
   const fetchWorkspaces = async (token) => {
     try {
-      const response = await fetch('http://localhost:3001/api/workspaces', {
+      const response = await fetch("http://localhost:3001/api/workspaces", {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setWorkspaces(data);
       } else {
-        console.error('Failed to fetch workspaces');
+        console.error("Failed to fetch workspaces");
       }
     } catch (error) {
-      console.error('Error fetching workspaces:', error);
+      console.error("Error fetching workspaces:", error);
     } finally {
       setLoading(false);
     }
@@ -58,12 +58,12 @@ export default function WorkspaceGrid() {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      day: 'numeric', 
-      month: 'short', 
-      year: 'numeric' 
+    return date.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   };
 
@@ -80,15 +80,13 @@ export default function WorkspaceGrid() {
         {isLogin && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-            <User className="w-10 h-10 cursor-pointer text-blue-500" />
+              <User className="w-10 h-10 cursor-pointer text-blue-500" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
               <DropdownMenuItem asChild>
                 <Link href="/profile">Dashboard</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={logout}>
-                Logout
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -105,13 +103,6 @@ export default function WorkspaceGrid() {
           <div className="border-b border-gray-200 mb-4"></div>
 
           <div className="flex items-center justify-between mb-6">
-            <Link href="/case-inputs">
-              <Button className="bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-full">
-                <Plus className="w-4 h-4 mr-2" />
-                Create workspace
-              </Button>
-            </Link>
-
             <div className="flex items-center">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -129,57 +120,60 @@ export default function WorkspaceGrid() {
             </div>
           </div>
 
-          {loading ? (
-            <div className="flex justify-center items-center h-48">
-              <p>Loading workspaces...</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {workspaces.length > 0 ? (
-                workspaces.map((workspace) => (
-                  <Link href={`/workspace/${workspace.id}`} key={workspace.id}>
-                    <div className="h-48 bg-[#f8f3e2] rounded-md p-4 relative cursor-pointer hover:shadow-md transition">
-                      <div className="absolute top-4 left-4">
-                        <div className="w-6 h-6 bg-yellow-200 border border-yellow-400 flex items-center justify-center text-yellow-800">
-                          📁
-                        </div>
-                      </div>
-                      <div className="absolute top-4 right-4">
-                        <Button variant="ghost" size="icon" className="h-6 w-6">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <h3 className="text-lg font-medium text-gray-800 mb-1 truncate">
-                          {workspace.name || "Untitled workspace"}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {formatDate(workspace.createdAt)} · 
-                          {workspace.documents ? ` ${workspace.documents.length} docs` : ' 0 docs'}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-12">
-                  <p className="text-gray-500">No workspaces found. Create your first workspace!</p>
-                </div>
-              )}
-              
-              {/* Always show "Create New" tile */}
-              <Link href="/case-inputs">
-                <div className="h-48 bg-gray-100 rounded-md p-4 relative cursor-pointer hover:shadow-md transition border-2 border-dashed border-gray-300 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Plus className="h-6 w-6 text-blue-700" />
-                    </div>
-                    <p className="text-blue-700 font-medium">Create workspace</p>
+          {/* Workspace Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {/* Create Workspace Card */}
+            <Link href="/case-inputs">
+              <div className="h-48 bg-gray-100 rounded-md p-4 relative cursor-pointer hover:shadow-md transition border-2 border-dashed border-gray-300 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Plus className="h-6 w-6 text-blue-700" />
                   </div>
+                  <p className="text-blue-700 font-medium">Create workspace</p>
                 </div>
-              </Link>
-            </div>
-          )}
+              </div>
+            </Link>
+
+            {loading ? (
+              <div className="col-span-full flex justify-center items-center h-48">
+                <p>Loading workspaces...</p>
+              </div>
+            ) : workspaces.length > 0 ? (
+              workspaces.map((workspace) => (
+                <Link href={`/workspace/${workspace.id}`} key={workspace.id}>
+                  <div className="h-48 bg-[#f8f3e2] rounded-md p-4 relative cursor-pointer hover:shadow-md transition">
+                    <div className="absolute top-4 left-4">
+                      <div className="w-6 h-6 bg-yellow-200 border border-yellow-400 flex items-center justify-center text-yellow-800">
+                        📁
+                      </div>
+                    </div>
+                    <div className="absolute top-4 right-4">
+                      <Button variant="ghost" size="icon" className="h-6 w-6">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <h3 className="text-lg font-medium text-gray-800 mb-1 truncate">
+                        {workspace.name || "Untitled workspace"}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {formatDate(workspace.createdAt)} ·
+                        {workspace.documents
+                          ? ` ${workspace.documents.length} docs`
+                          : " 0 docs"}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500">
+                  No workspaces found. Create your first workspace!
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>
