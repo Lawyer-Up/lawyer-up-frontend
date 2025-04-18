@@ -43,6 +43,8 @@ export default function NotebookApp() {
   const [inputValue, setInputValue] = useState('');
   const [editMode, setEditMode] = useState(false);
   const [editedContent, setEditedContent] = useState('');
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
+  const [summaryError, setSummaryError] = useState(null);
  
   // File structure and management states
   const [fileStructure, setFileStructure] = useState([
@@ -197,6 +199,65 @@ export default function NotebookApp() {
     } finally {
       setIsGeneratingCIBC(false);
     }
+  };
+
+  useEffect(() => {
+    const fetchCaseSummary = async () => {
+      if (!workspaceId) return;
+      
+      setIsLoadingSummary(true);
+      setSummaryError(null);
+      
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/workspaces/${workspaceId}/case`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const caseData = await response.json();
+          // Format the case data into a summary string
+          const summary = formatCaseSummary(caseData);
+          setCaseSummary(summary);
+        } else {
+          throw new Error('Failed to fetch case data');
+        }
+      } catch (error) {
+        console.error('Error fetching case summary:', error);
+        setSummaryError(error.message);
+        // Set a default summary if there's an error
+        setCaseSummary(
+          "This is a comprehensive summary of the ongoing case. It includes all key points, relevant laws, and important dates."
+        );
+      } finally {
+        setIsLoadingSummary(false);
+      }
+    };
+  
+    fetchCaseSummary();
+  }, [workspaceId]);
+  
+  // Helper function to format case data into a summary
+  const formatCaseSummary = (caseData) => {
+    return `
+      Client: ${caseData.clientName || 'Not provided'}
+      Case Type: ${caseData.caseType || 'Not specified'}
+      
+      Description:
+      ${caseData.description || 'No description available'}
+      
+      Key Facts:
+      - Date: ${caseData.factsDate ? new Date(caseData.factsDate).toLocaleDateString() : 'Not specified'}
+      - Location: ${caseData.factsPlace || 'Not specified'}
+      - Witnesses: ${caseData.factsWitnesses || 'None listed'}
+      
+      Police Station: ${caseData.policeStation || 'Not specified'}
+      Opposing Party: ${caseData.opposingParty || 'Not specified'}
+      
+      Urgency: ${caseData.urgency || 'Standard'}
+    `;
   };
 
   // Generate document based on CIBC
@@ -858,36 +919,48 @@ const deleteTimelineEvent = async (id) => {
               </div>
             )}
 
-            <div className="border rounded-lg overflow-hidden">
-              <div className="bg-gray-50 p-2 border-b flex justify-between items-center">
-                <span className="text-sm font-medium">Case Summary</span>
-                <button
-                  className="p-1 hover:bg-gray-200 rounded"
-                  onClick={() => setShowFullSummary(!showFullSummary)}
-                >
-                  {showFullSummary ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-              <div className={`p-3 ${showFullSummary ? '' : 'max-h-[120px] overflow-hidden'} relative`}>
-                <p className="text-sm text-gray-700 whitespace-pre-line">
-                  {caseSummary}
-                </p>
-                {!showFullSummary && (
-                  <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent flex items-end justify-center">
-                    <button
-                      className="text-xs text-blue-500 hover:text-blue-700 mb-1"
-                      onClick={() => setShowFullSummary(true)}
-                    >
-                      Expand
-                    </button>
-                  </div>
+          <div className="border rounded-lg overflow-hidden">
+            <div className="bg-gray-50 p-2 border-b flex justify-between items-center">
+              <span className="text-sm font-medium">Case Summary</span>
+              <button
+                className="p-1 hover:bg-gray-200 rounded"
+                onClick={() => setShowFullSummary(!showFullSummary)}
+              >
+                {showFullSummary ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
                 )}
-              </div>
+              </button>
             </div>
+            <div className={`p-3 ${showFullSummary ? '' : 'max-h-[120px] overflow-hidden'} relative`}>
+              {isLoadingSummary ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader className="w-5 h-5 animate-spin text-gray-500" />
+                </div>
+              ) : summaryError ? (
+                <div className="text-sm text-red-500">
+                  Error loading summary: {summaryError}
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-700 whitespace-pre-line">
+                    {caseSummary}
+                  </p>
+                  {!showFullSummary && (
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent flex items-end justify-center">
+                      <button
+                        className="text-xs text-blue-500 hover:text-blue-700 mb-1"
+                        onClick={() => setShowFullSummary(true)}
+                      >
+                        Expand
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
 
             {/* Added Files Section */}
             {addedFiles.length > 0 && (
