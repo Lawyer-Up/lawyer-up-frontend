@@ -566,17 +566,52 @@ const deleteTimelineEvent = async (id) => {
   };
 
   // Handle sending messages
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
+  
     if (inputValue.trim()) {
-      setMessages([...messages, { sender: 'user', text: inputValue }]);
+      const userMessage = inputValue.trim();
+      setMessages([...messages, { sender: 'user', text: userMessage }]);
       setInputValue('');
-     
-      setTimeout(() => {
-        setMessages(prev => [...prev, { sender: 'system', text: 'I\'m analyzing your request...' }]);
-      }, 1000);
+  
+      // Optional loading or thinking message
+      setMessages(prev => [...prev, { sender: 'system', text: "Claude is thinking..." }]);
+  
+      try {
+        // Replace with your real Claude endpoint and API key
+        const response = await fetch('https://api.anthropic.com/v1/complete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'YOUR_CLAUDE_API_KEY',
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'claude-2',
+            prompt: `Human: ${userMessage}\n\nAssistant:`,
+            max_tokens_to_sample: 300,
+            stop_sequences: ["\n\nHuman:"]
+          })
+        });
+  
+        const data = await response.json();
+        const reply = data.completion;
+  
+        // Remove the "thinking" message and add Claude's reply
+        setMessages(prev => [
+          ...prev.filter(m => m.text !== "thinking..."),
+          { sender: 'claude', text: reply }
+        ]);
+      } catch (error) {
+        console.error('Claude API Error:', error);
+        setMessages(prev => [
+          ...prev,
+          { sender: 'system', text: 'Hi there can you give me some more context or add details regarding the case !' }
+        ]);
+      }
     }
   };
+  
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
