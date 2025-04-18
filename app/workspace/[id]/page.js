@@ -25,12 +25,18 @@ import {
   Calendar,
   Check,
   ChevronUp,
+  Loader,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 
 export default function NotebookApp() {
+  // Get the workspace ID from URL params
+  const params = useParams();
+  const workspaceId = params?.id;
+
   // File explorer and document states
-  const [showFileExplorer, setShowFileExplorer] = useState(true);
+  const [showFileExplorer, setShowFileExplorer] = useState(false);
   const [openFiles, setOpenFiles] = useState([]);
   const [activeFileIndex, setActiveFileIndex] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -56,14 +62,26 @@ export default function NotebookApp() {
   const [addedFiles, setAddedFiles] = useState([]);
   const [showFileOptions, setShowFileOptions] = useState(false);
  
+  // CIBC and document generation states
+  const [showDocumentGenerator, setShowDocumentGenerator] = useState(false);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [isGeneratingCIBC, setIsGeneratingCIBC] = useState(false);
+  const [cibcList, setCibcList] = useState([]);
+  const [selectedCibcId, setSelectedCibcId] = useState("");
+  const [currentCibc, setCurrentCibc] = useState(null);
+  
+  // Document generation form states
+  const [documentType, setDocumentType] = useState('LegalNotice');
+  const [recipient, setRecipient] = useState('');
+  const [jurisdiction, setJurisdiction] = useState('State Specific');
+  const [tone, setTone] = useState('Formal');
+  const [customInstructions, setCustomInstructions] = useState('');
+  const [isGeneratingDocument, setIsGeneratingDocument] = useState(false);
+  
   // Argument generator states
   const [showArgumentGenerator, setShowArgumentGenerator] = useState(false);
-  const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [argumentPoints, setArgumentPoints] = useState([]);
   const [isGeneratingArguments, setIsGeneratingArguments] = useState(false);
-  const [documentType, setDocumentType] = useState('');
-  const [recipient, setRecipient] = useState('');
-  const [tone, setTone] = useState('');
  
   // Sidebar states
   const [showFullSummary, setShowFullSummary] = useState(false);
@@ -103,23 +121,205 @@ export default function NotebookApp() {
     "\n\nImportant deadlines:\n- Submit motion to suppress: October 30\n- Expert witness disclosure: November 5\n- Pretrial conference: November 10"
   );
 
+  // Fetch CIBC list on component mount
+  useEffect(() => {
+    if (workspaceId) {
+      fetchCibcList();
+    }
+  }, [workspaceId]);
+
+  // Fetch CIBC list from API
+  const fetchCibcList = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/workspaces/${workspaceId}/cibc`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCibcList(data);
+        if (data.length > 0) {
+          setSelectedCibcId(data[0].id);
+          setCurrentCibc(data[0]);
+        }
+      } else {
+        console.error('Failed to fetch CIBC list');
+      }
+    } catch (error) {
+      console.error('Error fetching CIBC list:', error);
+    }
+  };
+
+  // Generate CIBC for the case
+  const generateCIBC = async () => {
+    setIsGeneratingCIBC(true);
+    setShowGenerateModal(false);
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/workspaces/${workspaceId}/cibc`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const cibc = await response.json();
+        setCibcList([cibc, ...cibcList]);
+        setSelectedCibcId(cibc.id);
+        setCurrentCibc(cibc);
+        setMessages([...messages, { 
+          sender: 'system', 
+          text: 'CIBC generated successfully!' 
+        }]);
+        setShowDocumentGenerator(true);
+      } else {
+        const error = await response.json();
+        setMessages([...messages, { 
+          sender: 'system', 
+          text: `Failed to generate CIBC: ${error.error}` 
+        }]);
+      }
+    } catch (error) {
+      console.error('Error generating CIBC:', error);
+      setMessages([...messages, { 
+        sender: 'system', 
+        text: 'Error generating CIBC. Please try again.' 
+      }]);
+    } finally {
+      setIsGeneratingCIBC(false);
+    }
+  };
+
+  // Generate document based on CIBC
+  const generateDocument = async () => {
+    if (!selectedCibcId) {
+      setMessages([...messages, { 
+        sender: 'system', 
+        text: 'Please select a CIBC first' 
+      }]);
+      return;
+    }
+
+    setIsGeneratingDocument(true);
+    
+    try {
+      const token = localStorage.getItem('token');
+      const payload = {
+        documentType,
+        recipient,
+        jurisdiction,
+        tone,
+        customInstructions,
+        cibcId: selectedCibcId
+      };
+      
+      const response = await fetch(`/api/workspaces/${workspaceId}/generate-document`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (response.ok) {
+        const document = await response.json();
+        
+        // Add the generated document to files
+        const newFile = {
+          name: `${documentType}_${recipient}.txt`,
+          type: 'file',
+          content: document.content
+        };
+        
+        setAddedFiles([...addedFiles, newFile]);
+        openFile(newFile);
+        
+        setMessages([...messages, { 
+          sender: 'system', 
+          text: 'Document generated successfully!' 
+        }]);
+        
+        setShowDocumentGenerator(false);
+      } else {
+        const error = await response.json();
+        setMessages([...messages, { 
+          sender: 'system', 
+          text: `Failed to generate document: ${error.error}` 
+        }]);
+      }
+    } catch (error) {
+      console.error('Error generating document:', error);
+      setMessages([...messages, { 
+        sender: 'system', 
+        text: 'Error generating document. Please try again.' 
+      }]);
+    } finally {
+      setIsGeneratingDocument(false);
+    }
+  };
+
+  // Choose a CIBC from the list
+  const selectCibc = (cibcId) => {
+    setSelectedCibcId(cibcId);
+    const selected = cibcList.find(cibc => cibc.id === cibcId);
+    if (selected) {
+      setCurrentCibc(selected);
+    }
+  };
+
   // Generate sample legal arguments
   const generateArguments = () => {
     setIsGeneratingArguments(true);
-    setShowGenerateModal(false);
-   
-    setTimeout(() => {
-      const exampleArguments = [
-        "Establish duty of care between the parties based on contractual relationship",
-        "Demonstrate breach of duty through documented communications",
-        "Show causation between breach and financial harm with accounting records",
-        "Quantify damages using financial statements and expert testimony"
-      ];
-     
-      setArgumentPoints(exampleArguments);
-      setIsGeneratingArguments(false);
-      setShowArgumentGenerator(true);
-    }, 1500);
+    
+    const fetchArguments = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/workspaces/${workspaceId}/generate-arguments`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setArgumentPoints(data.arguments);
+        } else {
+          console.error('Failed to generate arguments');
+          // Use mock arguments as fallback
+          const mockArguments = [
+            "Establish duty of care between the parties based on contractual relationship",
+            "Demonstrate breach of duty through documented communications",
+            "Show causation between breach and financial harm with accounting records",
+            "Quantify damages using financial statements and expert testimony"
+          ];
+          setArgumentPoints(mockArguments);
+        }
+      } catch (error) {
+        console.error('Error generating arguments:', error);
+        // Use mock arguments as fallback
+        const mockArguments = [
+          "Establish duty of care between the parties based on contractual relationship",
+          "Demonstrate breach of duty through documented communications",
+          "Show causation between breach and financial harm with accounting records",
+          "Quantify damages using financial statements and expert testimony"
+        ];
+        setArgumentPoints(mockArguments);
+      } finally {
+        setIsGeneratingArguments(false);
+      }
+    };
+    
+    fetchArguments();
+    setShowArgumentGenerator(true);
   };
 
   // Add argument to notes
@@ -184,8 +384,12 @@ export default function NotebookApp() {
  
   // Open a file in the editor
   const openFile = (file) => {
-    const existingFileIndex = openFiles.findIndex(f => f.name === file.name);
-   
+    // Check if this is already open
+    const existingFileIndex = openFiles.findIndex(f => 
+      (f.isCibc && file.isCibc && f.cibcId === file.cibcId) || 
+      (!f.isCibc && !file.isCibc && f.name === file.name)
+    );
+    
     if (existingFileIndex >= 0) {
       setActiveFileIndex(existingFileIndex);
       setEditedContent(openFiles[existingFileIndex].content);
@@ -344,7 +548,7 @@ export default function NotebookApp() {
           <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
             <div className="w-4 h-4 border-2 border-white rounded-full"></div>
           </div>
-          <h1 className="text-lg font-medium">Untitled case</h1>
+          <h1 className="text-lg font-medium">Workspace: {workspaceId}</h1>
         </div>
         <div className="flex items-center gap-4">
           <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md hover:bg-gray-100">
@@ -371,10 +575,20 @@ export default function NotebookApp() {
             <h2 className="font-medium">Sources</h2>
             <button
               className="flex items-center gap-1 px-3 py-1 text-sm rounded-md bg-blue-500 text-white hover:bg-blue-600"
-              onClick={() => setShowGenerateModal(true)}
+              onClick={generateCIBC}
+              disabled={isGeneratingCIBC}
             >
-              <Gavel className="w-4 h-4" />
-              <span>Generate</span>
+              {isGeneratingCIBC ? (
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <Gavel className="w-4 h-4" />
+                  <span>Generate CIBC</span>
+                </>
+              )}
             </button>
           </div>
 
@@ -424,6 +638,145 @@ export default function NotebookApp() {
                     accept=".txt"
                   />
                 </label>
+              </div>
+            )}
+
+            {/* CIBC List */}
+            {cibcList.length > 0 && (
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-gray-50 p-2 border-b flex justify-between items-center">
+                  <span className="text-sm font-medium">CIBC Documents</span>
+                  <button
+                    className="p-1 hover:bg-gray-200 rounded text-xs"
+                    onClick={() => setShowDocumentGenerator(!showDocumentGenerator)}
+                  >
+                    {showDocumentGenerator ? "Hide" : "Generate Document"}
+                  </button>
+                </div>
+                <div className="p-2 space-y-1 max-h-40 overflow-y-auto">
+                  {cibcList.map((cibc) => (
+                    <div
+                      key={cibc.id}
+                      className={`group flex items-center justify-between gap-2 px-2 py-1 hover:bg-gray-100 rounded cursor-pointer ${
+                        selectedCibcId === cibc.id ? 'bg-blue-50' : ''
+                      }`}
+                      onClick={() => {
+                        selectCibc(cibc.id);
+                        // Open the CIBC in a new tab
+                        const cibcFile = {
+                          name: cibc.title,
+                          type: 'file',
+                          content: cibc.content,
+                          isCibc: true,
+                          cibcId: cibc.id
+                        };
+                        openFile(cibcFile);
+                      }}
+                    >
+                      <div className="flex items-center gap-2 flex-1">
+                        <Gavel className="w-4 h-4 text-blue-500" />
+                        <span className="text-sm">{cibc.title}</span>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {new Date(cibc.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Document Generator Panel */}
+            {showDocumentGenerator && (
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-gray-50 p-2 border-b flex justify-between items-center">
+                  <span className="text-sm font-medium">Document Generator</span>
+                  <button
+                    className="p-1 hover:bg-gray-200 rounded"
+                    onClick={() => setShowDocumentGenerator(false)}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="p-3 space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Document Type</label>
+                    <select
+                      value={documentType}
+                      onChange={(e) => setDocumentType(e.target.value)}
+                      className="w-full p-2 border rounded text-sm"
+                    >
+                      <option value="LegalNotice">Legal Notice</option>
+                      <option value="BailApplication">Bail Application</option>
+                      <option value="ClientEmail">Client Email</option>
+                      <option value="CourtReply">Court Reply</option>
+                      <option value="Affidavit">Affidavit</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Recipient</label>
+                    <input
+                      type="text"
+                      value={recipient}
+                      onChange={(e) => setRecipient(e.target.value)}
+                      placeholder="e.g., Court, Client, Opposition"
+                      className="w-full p-2 border rounded text-sm"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Jurisdiction</label>
+                    <input
+                      type="text"
+                      value={jurisdiction}
+                      onChange={(e) => setJurisdiction(e.target.value)}
+                      placeholder="e.g., Delhi High Court"
+                      className="w-full p-2 border rounded text-sm"
+                      defaultValue="State Specific"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Tone</label>
+                    <select
+                      value={tone}
+                      onChange={(e) => setTone(e.target.value)}
+                      className="w-full p-2 border rounded text-sm"
+                    >
+                      <option value="Formal">Formal</option>
+                      <option value="Assertive">Assertive</option>
+                      <option value="Conciliatory">Conciliatory</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Custom Instructions (Optional)</label>
+                    <textarea
+                      value={customInstructions}
+                      onChange={(e) => setCustomInstructions(e.target.value)}
+                      placeholder="Any specific requirements..."
+                      className="w-full p-2 border rounded text-sm h-20"
+                    />
+                  </div>
+                  
+                  <button
+                    onClick={generateDocument}
+                    disabled={!recipient || isGeneratingDocument}
+                    className={`w-full py-2 rounded text-sm font-medium text-white ${
+                      !recipient || isGeneratingDocument ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+                    }`}
+                  >
+                    {isGeneratingDocument ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader className="w-4 h-4 animate-spin" />
+                        <span>Generating...</span>
+                      </div>
+                    ) : (
+                      'Generate Document'
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -505,7 +858,11 @@ export default function NotebookApp() {
                     }`}
                     onClick={() => setActiveFileIndex(index)}
                   >
-                    <FileText className="w-4 h-4 text-gray-500 mr-2" />
+                    {file.isCibc ? (
+                      <Gavel className="w-4 h-4 text-blue-500 mr-2" />
+                    ) : (
+                      <FileText className="w-4 h-4 text-gray-500 mr-2" />
+                    )}
                     <span className="text-sm">{file.name}</span>
                     <button
                       className="ml-2 p-1 hover:bg-gray-200 rounded-full"
