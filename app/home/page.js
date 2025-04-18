@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, ChevronDown, MoreVertical, Scale } from "lucide-react";
+import { Plus, ChevronDown, MoreVertical, Scale, User } from "lucide-react";
 import Link from "next/link";
 
 export default function WorkspaceGrid() {
@@ -80,12 +80,7 @@ export default function WorkspaceGrid() {
         {isLogin && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-8 h-8 rounded-full bg-purple-600 text-white p-0"
-              >
-                H
-              </Button>
+            <User className="w-10 h-10 cursor-pointer text-blue-500" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
               <DropdownMenuItem asChild>

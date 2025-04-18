@@ -26,14 +26,30 @@ import {
   Check,
   ChevronUp,
   Loader,
+  User,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 
 export default function NotebookApp() {
   // Get the workspace ID from URL params
   const params = useParams();
   const workspaceId = params?.id;
+
+  const logout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      setIsLogin(false);
+      setWorkspaces([]);
+    }
+  };
 
   // File explorer and document states
   const [showFileExplorer, setShowFileExplorer] = useState(false);
@@ -639,9 +655,19 @@ const deleteTimelineEvent = async (id) => {
           <h1 className="text-lg font-medium">Workspace: {workspaceId}</h1>
         </div>
         <div className="flex items-center gap-4">
-          <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-medium">
-            R
-          </div>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+            <User className="w-10 h-10 cursor-pointer text-blue-500" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem asChild>
+                <Link href="/profile">Dashboard</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

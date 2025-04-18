@@ -147,10 +147,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-slate-800 text-white">
+      <section className="py-16 bg-slate-50 ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to Transform Your Legal Practice?</h2>
-          <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-8">
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-8">
             Join thousands of legal professionals who are already using LawyerUP to streamline their workflow and improve outcomes.
           </p>
           <Link href="/signup">
@@ -163,9 +163,9 @@ export default function LandingPage() {
       </section>
 
       <section className="py-16 bg-white text-slate-900">
-  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ">
     <h2 className="text-3xl sm:text-4xl font-bold text-center mb-10">Privacy Policy</h2>
-    <div className="space-y-8 text-base sm:text-lg leading-relaxed text-slate-700">
+    <div className="space-y-8 text-base sm:text-lg leading-relaxed text-slate-700 shadow rounded-2xl p-4">
       <div>
         <h3 className="font-semibold text-slate-900 mb-2">Data Collection</h3>
         <p>
