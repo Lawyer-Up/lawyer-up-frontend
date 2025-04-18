@@ -639,16 +639,6 @@ const deleteTimelineEvent = async (id) => {
           <h1 className="text-lg font-medium">Workspace: {workspaceId}</h1>
         </div>
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md hover:bg-gray-100">
-            <Share className="w-4 h-4" />
-            Share
-          </button>
-          <button className="p-1.5 rounded-md hover:bg-gray-100">
-            <Settings className="w-5 h-5" />
-          </button>
-          <button className="p-1.5 rounded-md hover:bg-gray-100">
-            <MoreVertical className="w-5 h-5" />
-          </button>
           <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-medium">
             R
           </div>
