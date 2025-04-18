@@ -13,7 +13,7 @@ export function FormSummary({ data, onPrev }) {
         <CheckCircle className="h-16 w-16 text-green-500" />
         <h2 className="text-2xl font-bold text-gray-800">Case Information Submitted</h2>
         <p className="text-muted-foreground">
-          Your case information has been successfully submitted. Here's a summary of the details provided.
+          Your case information has been successfully submitted. Here is a summary of the details provided.
         </p>
       </div>
 

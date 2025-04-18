@@ -97,7 +97,7 @@ export default function NotebookApp() {
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventDate, setNewEventDate] = useState('');
 
-  // Case summary content
+  // eslint-disable-next-line react/no-unescaped-entities
   const [caseSummary, setCaseSummary] = useState(
     "This is a comprehensive summary of the ongoing case. It includes all key points, relevant laws, and important dates. " +
     "The client is accused of violating section 420 of the IPC. The defense will argue lack of intent based on the evidence collected. " +
@@ -106,6 +106,7 @@ export default function NotebookApp() {
     "the chain of custody for the evidence and establishing reasonable doubt about our client's involvement. " +
     "\n\nImportant deadlines:\n- Submit motion to suppress: October 30\n- Expert witness disclosure: November 5\n- Pretrial conference: November 10"
   );
+
 
   useEffect(() => {
     if (workspaceId) {
