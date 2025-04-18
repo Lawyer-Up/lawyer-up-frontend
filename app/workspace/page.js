@@ -24,10 +24,12 @@ import {
   Gavel,
   Calendar,
   Check,
+  ChevronUp,
 } from "lucide-react";
 import { useState } from "react";
 
 export default function NotebookApp() {
+  // File explorer and document states
   const [showFileExplorer, setShowFileExplorer] = useState(true);
   const [openFiles, setOpenFiles] = useState([]);
   const [activeFileIndex, setActiveFileIndex] = useState(null);
@@ -35,6 +37,8 @@ export default function NotebookApp() {
   const [inputValue, setInputValue] = useState('');
   const [editMode, setEditMode] = useState(false);
   const [editedContent, setEditedContent] = useState('');
+ 
+  // File structure and management states
   const [fileStructure, setFileStructure] = useState([
     {
       name: "Case",
@@ -49,43 +53,61 @@ export default function NotebookApp() {
       ]
     }
   ]);
-  const [newItemType, setNewItemType] = useState(null);
-  const [newItemName, setNewItemName] = useState('');
-  const [addingItemPath, setAddingItemPath] = useState([]);
+  const [addedFiles, setAddedFiles] = useState([]);
   const [showFileOptions, setShowFileOptions] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
+ 
+  // Argument generator states
   const [showArgumentGenerator, setShowArgumentGenerator] = useState(false);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [argumentPoints, setArgumentPoints] = useState([]);
   const [isGeneratingArguments, setIsGeneratingArguments] = useState(false);
-  
-  // Notes state
+  const [documentType, setDocumentType] = useState('');
+  const [recipient, setRecipient] = useState('');
+  const [tone, setTone] = useState('');
+ 
+  // Sidebar states
+  const [showFullSummary, setShowFullSummary] = useState(false);
+ 
+  // Notes states
   const [notes, setNotes] = useState([
     { id: 1, content: "Client meeting scheduled for next week", createdAt: new Date() },
     { id: 2, content: "Review evidence documents", createdAt: new Date() }
   ]);
   const [newNote, setNewNote] = useState('');
-  
-  // Timeline state
+ 
+  // Timeline states
   const [timelineEvents, setTimelineEvents] = useState([
-    { 
-      id: 1, 
-      title: "First Hearing", 
-      date: "2023-11-15", 
-      completed: false 
+    {
+      id: 1,
+      title: "First Hearing",
+      date: "2023-11-15",
+      completed: false
     },
-    { 
-      id: 2, 
-      title: "Evidence Submission", 
-      date: "2023-12-01", 
-      completed: false 
+    {
+      id: 2,
+      title: "Evidence Submission",
+      date: "2023-12-01",
+      completed: false
     }
   ]);
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventDate, setNewEventDate] = useState('');
 
+  // Case summary content
+  const [caseSummary, setCaseSummary] = useState(
+    "This is a comprehensive summary of the ongoing case. It includes all key points, relevant laws, and important dates. " +
+    "The client is accused of violating section 420 of the IPC. The defense will argue lack of intent based on the evidence collected. " +
+    "Key witnesses include John Doe and Jane Smith who were present at the scene. The next hearing is scheduled for November 15th. " +
+    "The prosecution is expected to present forensic evidence and call their first witness. Our strategy will focus on challenging " +
+    "the chain of custody for the evidence and establishing reasonable doubt about our client's involvement. " +
+    "\n\nImportant deadlines:\n- Submit motion to suppress: October 30\n- Expert witness disclosure: November 5\n- Pretrial conference: November 10"
+  );
+
+  // Generate sample legal arguments
   const generateArguments = () => {
     setIsGeneratingArguments(true);
-    
+    setShowGenerateModal(false);
+   
     setTimeout(() => {
       const exampleArguments = [
         "Establish duty of care between the parties based on contractual relationship",
@@ -93,12 +115,14 @@ export default function NotebookApp() {
         "Show causation between breach and financial harm with accounting records",
         "Quantify damages using financial statements and expert testimony"
       ];
-      
+     
       setArgumentPoints(exampleArguments);
       setIsGeneratingArguments(false);
+      setShowArgumentGenerator(true);
     }, 1500);
   };
 
+  // Add argument to notes
   const addArgumentToNotes = (point) => {
     const newNote = {
       id: Date.now(),
@@ -108,6 +132,7 @@ export default function NotebookApp() {
     setNotes([...notes, newNote]);
   };
 
+  // Add new note
   const addNote = () => {
     if (newNote.trim()) {
       const note = {
@@ -120,10 +145,12 @@ export default function NotebookApp() {
     }
   };
 
+  // Delete note
   const deleteNote = (id) => {
     setNotes(notes.filter(note => note.id !== id));
   };
 
+  // Add timeline event
   const addTimelineEvent = () => {
     if (newEventTitle.trim() && newEventDate) {
       const event = {
@@ -138,24 +165,27 @@ export default function NotebookApp() {
     }
   };
 
+  // Delete timeline event
   const deleteTimelineEvent = (id) => {
     setTimelineEvents(timelineEvents.filter(event => event.id !== id));
   };
 
+  // Toggle event completion status
   const toggleEventCompletion = (id) => {
-    setTimelineEvents(timelineEvents.map(event => 
+    setTimelineEvents(timelineEvents.map(event =>
       event.id === id ? { ...event, completed: !event.completed } : event
     ));
   };
 
+  // Toggle file explorer visibility
   const toggleFileExplorer = () => {
     setShowFileExplorer(!showFileExplorer);
-    cancelAddingItem();
   };
-  
+ 
+  // Open a file in the editor
   const openFile = (file) => {
     const existingFileIndex = openFiles.findIndex(f => f.name === file.name);
-    
+   
     if (existingFileIndex >= 0) {
       setActiveFileIndex(existingFileIndex);
       setEditedContent(openFiles[existingFileIndex].content);
@@ -167,13 +197,14 @@ export default function NotebookApp() {
     setEditMode(false);
   };
 
+  // Close a file
   const closeFile = (index, e) => {
     e?.stopPropagation();
-    
+   
     const newOpenFiles = [...openFiles];
     newOpenFiles.splice(index, 1);
     setOpenFiles(newOpenFiles);
-    
+   
     if (activeFileIndex === index) {
       if (newOpenFiles.length > 0) {
         setActiveFileIndex(index >= newOpenFiles.length ? newOpenFiles.length - 1 : index);
@@ -187,12 +218,13 @@ export default function NotebookApp() {
     }
   };
 
+  // Handle sending messages
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (inputValue.trim()) {
       setMessages([...messages, { sender: 'user', text: inputValue }]);
       setInputValue('');
-      
+     
       setTimeout(() => {
         setMessages(prev => [...prev, { sender: 'system', text: 'I\'m analyzing your request...' }]);
       }, 1000);
@@ -202,6 +234,12 @@ export default function NotebookApp() {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Check if the file is a .txt file
+      if (!file.name.endsWith('.txt')) {
+        alert('Please select a .txt file');
+        return;
+      }
+     
       const reader = new FileReader();
       reader.onload = (event) => {
         const content = event.target.result;
@@ -210,11 +248,8 @@ export default function NotebookApp() {
           type: 'file',
           content: content
         };
-        
-        setOpenFiles([...openFiles, newFile]);
-        setActiveFileIndex(openFiles.length);
-        setEditedContent(content);
-        setFileStructure([...fileStructure, newFile]);
+       
+        setAddedFiles([...addedFiles, newFile]);
         setMessages([...messages, { sender: 'system', text: `Uploaded file: ${file.name}` }]);
       };
       reader.readAsText(file);
@@ -222,22 +257,20 @@ export default function NotebookApp() {
     setShowFileOptions(false);
   };
 
+  // Create new text file
   const createNewTextFile = () => {
-    const fileName = `New Document ${openFiles.length + 1}.txt`;
+    const fileName = `New Document ${addedFiles.length + 1}.txt`;
     const newFile = {
       name: fileName,
       type: 'file',
       content: ''
     };
-    
-    setOpenFiles([...openFiles, newFile]);
-    setActiveFileIndex(openFiles.length);
-    setEditedContent('');
-    setFileStructure([...fileStructure, newFile]);
-    setEditMode(true);
+   
+    setAddedFiles([...addedFiles, newFile]);
     setShowFileOptions(false);
   };
 
+  // Toggle edit mode
   const toggleEditMode = () => {
     if (editMode) {
       const updatedFiles = [...openFiles];
@@ -247,107 +280,20 @@ export default function NotebookApp() {
     setEditMode(!editMode);
   };
 
-  const startAddingItem = (type, path = []) => {
-    setNewItemType(type);
-    setNewItemName('');
-    setAddingItemPath(path);
-  };
-
-  const cancelAddingItem = () => {
-    setNewItemType(null);
-    setNewItemName('');
-    setAddingItemPath([]);
-  };
-
-  const confirmAddItem = () => {
-    if (!newItemName.trim()) return;
-
-    const newItem = {
-      name: newItemName.trim(),
-      type: newItemType,
-      ...(newItemType === 'file' ? { content: '' } : { children: [] })
-    };
-
-    const updateStructure = (items, pathIndex = 0) => {
-      return items.map(item => {
-        if (pathIndex < addingItemPath.length && item.name === addingItemPath[pathIndex]) {
-          if (item.type === 'folder') {
-            return {
-              ...item,
-              children: pathIndex === addingItemPath.length - 1 
-                ? [...(item.children || []), newItem] 
-                : updateStructure(item.children || [], pathIndex + 1)
-            };
-          }
-        }
-        return item;
-      });
-    };
-
-    if (addingItemPath.length === 0) {
-      setFileStructure([...fileStructure, newItem]);
-    } else {
-      setFileStructure(updateStructure(fileStructure));
-    }
-
-    cancelAddingItem();
-  };
-
-  const deleteItem = (item, path = []) => {
-    const updateStructure = (items) => {
-      return items.filter(i => {
-        if (i.name === item.name && i.type === item.type) {
-          const fileIndex = openFiles.findIndex(f => f.name === item.name);
-          if (fileIndex >= 0) {
-            closeFile(fileIndex);
-          }
-          return false;
-        }
-        if (i.type === 'folder' && i.children) {
-          i.children = updateStructure(i.children);
-        }
-        return true;
-      });
-    };
-
-    if (path.length === 0) {
-      setFileStructure(updateStructure(fileStructure));
-    } else {
-      const updateNestedStructure = (items, pathIndex = 0) => {
-        return items.map(i => {
-          if (pathIndex < path.length && i.name === path[pathIndex]) {
-            if (i.type === 'folder') {
-              return {
-                ...i,
-                children: pathIndex === path.length - 1 
-                  ? updateStructure(i.children || [])
-                  : updateNestedStructure(i.children || [], pathIndex + 1)
-              };
-            }
-          }
-          return i;
-        });
-      };
-      setFileStructure(updateNestedStructure(fileStructure));
-    }
-
-    setItemToDelete(null);
-  };
-
   const FileExplorer = ({ items, path = [] }) => {
     const [expandedFolders, setExpandedFolders] = useState({
       Case: true,
       "Legal Research": false,
       "Correspondence": false
     });
-    
+   
     const toggleFolder = (folderName) => {
       setExpandedFolders({
         ...expandedFolders,
         [folderName]: !expandedFolders[folderName]
       });
     };
-    
+   
     return (
       <div className="p-2 space-y-1">
         {items.map((item, index) => (
@@ -355,121 +301,44 @@ export default function NotebookApp() {
             {item.type === 'folder' ? (
               <div>
                 <div className="group flex items-center justify-between gap-2 px-2 py-1 hover:bg-gray-100 rounded cursor-pointer">
-                  <div 
+                  <div
                     className="flex items-center gap-2 flex-1"
                     onClick={() => toggleFolder(item.name)}
                   >
                     <ChevronDown className={`w-4 h-4 transition-transform ${expandedFolders[item.name] ? '' : '-rotate-90'}`} />
-                    {expandedFolders[item.name] ? 
-                      <FolderOpen className="w-4 h-4 text-blue-500" /> : 
+                    {expandedFolders[item.name] ?
+                      <FolderOpen className="w-4 h-4 text-blue-500" /> :
                       <Folder className="w-4 h-4 text-blue-500" />
                     }
                     <span className="text-sm">{item.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                    <button 
-                      className="p-1 hover:bg-gray-200 rounded"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        startAddingItem('folder', [...path, item.name]);
-                      }}
-                    >
-                      <Plus className="w-3 h-3" />
-                    </button>
-                    <button 
-                      className="p-1 hover:bg-gray-200 rounded text-red-500"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setItemToDelete({ item, path: [...path, item.name] });
-                      }}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
                   </div>
                 </div>
                 {expandedFolders[item.name] && item.children && (
                   <div className="ml-6 relative">
                     <FileExplorer items={item.children} path={[...path, item.name]} />
-                    {addingItemPath.length === path.length + 1 && 
-                     addingItemPath.every((name, i) => name === [...path, item.name][i]) && (
-                      <div className="flex items-center gap-1 ml-6 mt-1">
-                        <button 
-                          className="p-1 hover:bg-gray-200 rounded"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startAddingItem('file', [...path, item.name]);
-                          }}
-                        >
-                          <FileText className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
             ) : (
               <div className="group flex items-center justify-between gap-2 px-2 py-1 hover:bg-gray-100 rounded cursor-pointer ml-6">
-                <div 
+                <div
                   className="flex items-center gap-2 flex-1"
                   onClick={() => openFile(item)}
                 >
                   <FileText className="w-4 h-4 text-gray-500" />
                   <span className="text-sm">{item.name}</span>
                 </div>
-                <button 
-                  className="p-1 hover:bg-gray-200 rounded text-red-500 opacity-0 group-hover:opacity-100"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setItemToDelete({ item, path: [...path, item.name] });
-                  }}
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
               </div>
             )}
           </div>
         ))}
-        
-        {newItemType && addingItemPath.length === path.length && 
-         addingItemPath.every((name, i) => name === path[i]) && (
-          <div className="ml-6 mt-1 flex items-center gap-2">
-            {newItemType === 'folder' ? (
-              <Folder className="w-4 h-4 text-blue-500" />
-            ) : (
-              <FileText className="w-4 h-4 text-gray-500" />
-            )}
-            <input
-              type="text"
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              placeholder={`${newItemType} name...`}
-              className="flex-1 text-sm px-2 py-1 border rounded outline-none"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') confirmAddItem();
-                if (e.key === 'Escape') cancelAddingItem();
-              }}
-            />
-            <button 
-              onClick={confirmAddItem}
-              className="p-1 text-green-600 hover:bg-gray-100 rounded"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-            <button 
-              onClick={cancelAddingItem}
-              className="p-1 text-red-600 hover:bg-gray-100 rounded"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
       </div>
     );
   };
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
@@ -494,41 +363,43 @@ export default function NotebookApp() {
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="flex h-[calc(100vh-64px)] relative">
+        {/* Left Sidebar */}
         <div className="w-[400px] border-r flex flex-col">
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="font-medium">Sources</h2>
-            <button className="p-1 hover:bg-gray-100 rounded">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
-                <line x1="9" x2="15" y1="3" y2="3"></line>
-                <line x1="9" x2="15" y1="21" y2="21"></line>
-                <line x1="3" x2="3" y1="9" y2="15"></line>
-                <line x1="21" x2="21" y1="9" y2="15"></line>
-              </svg>
+            <button
+              className="flex items-center gap-1 px-3 py-1 text-sm rounded-md bg-blue-500 text-white hover:bg-blue-600"
+              onClick={() => setShowGenerateModal(true)}
+            >
+              <Gavel className="w-4 h-4" />
+              <span>Generate</span>
             </button>
           </div>
 
           <div className="p-4 space-y-4">
             <div className="flex gap-3">
-              <button 
+            </div>
+
+            {showFileExplorer && (
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-gray-50 p-2 border-b flex justify-between items-center">
+                  <span className="text-sm font-medium">File Explorer</span>
+                </div>
+                <FileExplorer items={fileStructure} />
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 border rounded-full text-sm font-medium hover:bg-gray-50"
-                onClick={() => startAddingItem('folder')}
+                onClick={() => setShowFileOptions(!showFileOptions)}
               >
                 <Plus className="w-4 h-4" />
                 Add
               </button>
-              <button 
+              <button
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 border rounded-full text-sm font-medium hover:bg-gray-50"
                 onClick={toggleFileExplorer}
               >
@@ -537,52 +408,117 @@ export default function NotebookApp() {
               </button>
             </div>
 
-            {showFileExplorer ? (
+            {showFileOptions && (
+              <div className="border rounded-lg p-4 space-y-3">
+                <label className="w-full flex items-center gap-3 p-3 border rounded hover:bg-gray-50 cursor-pointer">
+                  <FileInput className="w-5 h-5 text-blue-500" />
+                  <div className="text-left">
+                    <h3 className="font-medium">Upload Document</h3>
+                    <p className="text-sm text-gray-500">Upload an existing document</p>
+                  </div>
+                  <input
+                    type="file"
+                    id="file-upload"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    accept=".txt"
+                  />
+                </label>
+              </div>
+            )}
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-gray-50 p-2 border-b flex justify-between items-center">
+                <span className="text-sm font-medium">Case Summary</span>
+                <button
+                  className="p-1 hover:bg-gray-200 rounded"
+                  onClick={() => setShowFullSummary(!showFullSummary)}
+                >
+                  {showFullSummary ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              <div className={`p-3 ${showFullSummary ? '' : 'max-h-[120px] overflow-hidden'} relative`}>
+                <p className="text-sm text-gray-700 whitespace-pre-line">
+                  {caseSummary}
+                </p>
+                {!showFullSummary && (
+                  <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent flex items-end justify-center">
+                    <button
+                      className="text-xs text-blue-500 hover:text-blue-700 mb-1"
+                      onClick={() => setShowFullSummary(true)}
+                    >
+                      Expand
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Added Files Section */}
+            {addedFiles.length > 0 && (
               <div className="border rounded-lg overflow-hidden">
                 <div className="bg-gray-50 p-2 border-b flex justify-between items-center">
-                  <span className="text-sm font-medium">File Explorer</span>
-                  {!newItemType && (
-                    <button 
-                      className="p-1 hover:bg-gray-200 rounded"
-                      onClick={() => startAddingItem('folder')}
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  )}
+                  <span className="text-sm font-medium">Added Files</span>
                 </div>
-                <FileExplorer items={fileStructure} />
+                <div className="p-2 space-y-1">
+                  {addedFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="group flex items-center justify-between gap-2 px-2 py-1 hover:bg-gray-100 rounded cursor-pointer"
+                      onClick={() => openFile(file)}
+                    >
+                      <div className="flex items-center gap-2 flex-1">
+                        <FileText className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm">{file.name}</span>
+                      </div>
+                      <button
+                        className="p-1 hover:bg-gray-200 rounded-full opacity-0 group-hover:opacity-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAddedFiles(addedFiles.filter((_, i) => i !== index));
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ) : (
-              <div className="space-y-3"></div>
             )}
           </div>
+
           {openFiles.length > 0 && (
-              <form onSubmit={handleSendMessage} className="border rounded-lg p-3">
-                <div className="flex items-center gap-2 border rounded-full p-1 pr-2">
-                  <input
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Type your message..."
-                    className="flex-1 px-3 py-1.5 text-sm bg-transparent outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </div>
-              </form>
-            )}
+            <form onSubmit={handleSendMessage} className="border rounded-lg p-3">
+              <div className="flex items-center gap-2 border rounded-full p-1 pr-2">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Type your message..."
+                  className="flex-1 px-3 py-1.5 text-sm bg-transparent outline-none"
+                />
+                <button
+                  type="submit"
+                  className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </form>
+          )}
         </div>
 
+        {/* Main Editor Area */}
         <div className="flex-1 border-r flex flex-col">
           {activeFileIndex !== null ? (
             <>
               <div className="flex items-center border-b overflow-x-auto">
                 {openFiles.map((file, index) => (
-                  <div 
+                  <div
                     key={index}
                     className={`flex items-center px-3 py-2 border-r hover:bg-gray-50 cursor-pointer ${
                       activeFileIndex === index ? 'bg-gray-100' : ''
@@ -591,7 +527,7 @@ export default function NotebookApp() {
                   >
                     <FileText className="w-4 h-4 text-gray-500 mr-2" />
                     <span className="text-sm">{file.name}</span>
-                    <button 
+                    <button
                       className="ml-2 p-1 hover:bg-gray-200 rounded-full"
                       onClick={(e) => closeFile(index, e)}
                     >
@@ -600,10 +536,10 @@ export default function NotebookApp() {
                   </div>
                 ))}
               </div>
-              
+             
               <div className="flex flex-col h-full">
                 <div className="p-2 border-b flex justify-end gap-2">
-                  <button 
+                  <button
                     onClick={() => {
                       setShowArgumentGenerator(!showArgumentGenerator);
                       if (!showArgumentGenerator) {
@@ -615,7 +551,7 @@ export default function NotebookApp() {
                     <Gavel className="w-4 h-4" />
                     <span>Arguments</span>
                   </button>
-                  <button 
+                  <button
                     onClick={toggleEditMode}
                     className="flex items-center gap-1 px-3 py-1 text-sm rounded hover:bg-gray-100"
                   >
@@ -640,7 +576,7 @@ export default function NotebookApp() {
                       className="w-full h-full p-2 border rounded bg-white"
                     />
                   ) : (
-                    <pre>{openFiles[activeFileIndex].content}</pre>
+                    <pre className="whitespace-pre-wrap">{openFiles[activeFileIndex].content}</pre>
                   )}
                 </div>
               </div>
@@ -654,16 +590,6 @@ export default function NotebookApp() {
               <div className="flex-1 flex flex-col items-center justify-center p-4 mb-16 overflow-y-auto">
                 {showFileOptions ? (
                   <div className="w-full max-w-md space-y-4">
-                    <button
-                      onClick={createNewTextFile}
-                      className="w-full flex items-center justify-center gap-3 p-4 border rounded-lg hover:bg-gray-50"
-                    >
-                      <FilePlus className="w-5 h-5 text-blue-500" />
-                      <div className="text-left">
-                        <h3 className="font-medium">Create New Text File</h3>
-                        <p className="text-sm text-gray-500">Start with a blank document</p>
-                      </div>
-                    </button>
                     <label className="w-full flex items-center justify-center gap-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
                       <FileInput className="w-5 h-5 text-blue-500" />
                       <div className="text-left">
@@ -691,7 +617,7 @@ export default function NotebookApp() {
                     </div>
                     <p className="text-lg font-medium mb-2">Upload a document to get started</p>
                     <p className="text-sm text-gray-500 mb-4">PDFs, Word docs, or text files</p>
-                    <button 
+                    <button
                       className="px-5 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700"
                       onClick={() => setShowFileOptions(true)}
                     >
@@ -722,6 +648,7 @@ export default function NotebookApp() {
           )}
         </div>
 
+        {/* Right Sidebar */}
         <div className="w-[400px] flex flex-col">
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="font-medium">Studio</h2>
@@ -751,20 +678,20 @@ export default function NotebookApp() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-medium">Argument Generator</h3>
-                  <button 
+                  <button
                     onClick={() => setShowArgumentGenerator(false)}
                     className="p-1 hover:bg-gray-100 rounded"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                
+               
                 <div className="border rounded-lg p-4 bg-gray-50">
                   <h4 className="font-medium mb-2">Analyzing: {openFiles[activeFileIndex]?.name || 'Current Document'}</h4>
                   <p className="text-sm text-gray-600 mb-3">
                     Based on the document content, here are potential legal arguments:
                   </p>
-                  
+                 
                   {isGeneratingArguments ? (
                     <div className="flex items-center justify-center py-4">
                       <div className="animate-pulse flex space-x-2">
@@ -791,10 +718,10 @@ export default function NotebookApp() {
                     </ul>
                   )}
                 </div>
-                
+               
                 <div className="border-t pt-4">
                   <button
-                    onClick={generateArguments}
+                    onClick={() => setShowGenerateModal(true)}
                     className="w-full py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600"
                   >
                     Regenerate Arguments
@@ -805,7 +732,7 @@ export default function NotebookApp() {
               <>
                 <div className="flex items-center justify-between">
                   <h3 className="font-medium">Notes</h3>
-                  <button 
+                  <button
                     onClick={() => setShowArgumentGenerator(true)}
                     className="flex items-center gap-1 px-3 py-1 text-sm rounded hover:bg-gray-100"
                   >
@@ -857,7 +784,7 @@ export default function NotebookApp() {
             )}
           </div>
 
-          {/* Simplified Timeline at the bottom */}
+          {/* Timeline Section */}
           <div className="border-t p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-medium">Case Timeline</h3>
@@ -889,8 +816,8 @@ export default function NotebookApp() {
               {timelineEvents
                 .sort((a, b) => new Date(a.date) - new Date(b.date))
                 .map((event) => (
-                  <li 
-                    key={event.id} 
+                  <li
+                    key={event.id}
                     className={`flex items-center gap-2 p-2 rounded cursor-pointer ${event.completed ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
                     onClick={() => toggleEventCompletion(event.id)}
                   >
@@ -922,24 +849,81 @@ export default function NotebookApp() {
         </div>
       </div>
 
-      {itemToDelete && (
+      {/* Generate Document Modal */}
+      {showGenerateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="font-medium mb-4">Delete {itemToDelete.item.type}</h3>
-            <p className="mb-6">Are you sure you want to delete "{itemToDelete.item.name}"? This action cannot be undone.</p>
-            <div className="flex justify-end gap-3">
-              <button 
-                onClick={() => setItemToDelete(null)}
-                className="px-4 py-2 border rounded-md text-sm font-medium hover:bg-gray-50"
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">Generate Document</h3>
+              <button
+                onClick={() => setShowGenerateModal(false)}
+                className="p-1 hover:bg-gray-100 rounded"
               >
-                Cancel
+                <X className="w-5 h-5" />
               </button>
-              <button 
-                onClick={() => deleteItem(itemToDelete.item, itemToDelete.path)}
-                className="px-4 py-2 bg-red-500 text-white rounded-md text-sm font-medium hover:bg-red-600"
-              >
-                Delete
-              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
+                <select
+                  value={documentType}
+                  onChange={(e) => setDocumentType(e.target.value)}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select type</option>
+                  <option value="bail">Bail Application</option>
+                  <option value="legal-notice">Legal Notice</option>
+                  <option value="email">Email to Client</option>
+                  <option value="petition">Petition</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Recipient</label>
+                <select
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select recipient</option>
+                  <option value="court">Hon'ble Court</option>
+                  <option value="police">Police Station</option>
+                  <option value="opposing-counsel">Opposing Counsel</option>
+                  <option value="client">Client</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tone</label>
+                <select
+                  value={tone}
+                  onChange={(e) => setTone(e.target.value)}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select tone</option>
+                  <option value="neutral">Neutral</option>
+                  <option value="professional">Professional</option>
+                  <option value="aggressive">Aggressive</option>
+                  <option value="strict">Strict</option>
+                </select>
+              </div>
+              
+              <div className="flex justify-end gap-2 pt-4">
+                <button
+                  onClick={() => setShowGenerateModal(false)}
+                  className="px-4 py-2 border rounded text-sm font-medium hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={generateArguments}
+                  disabled={!documentType || !recipient || !tone}
+                  className={`px-4 py-2 rounded text-sm font-medium text-white ${!documentType || !recipient || !tone ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
+                >
+                  Generate
+                </button>
+              </div>
             </div>
           </div>
         </div>
