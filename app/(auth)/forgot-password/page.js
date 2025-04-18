@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
           </h2>
           <p className="text-muted-foreground mt-2">
             {submitted
-              ? "We've sent you instructions to reset your password"
+              ? "We have sent you instructions to reset your password"
               : "Enter your email to reset your password"}
           </p>
         </div>
