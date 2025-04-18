@@ -59,13 +59,13 @@ const [fileStructure, setFileStructure] = useState([
         type: "file", 
         content: `# BAIL BOND
 
-**STATE OF CALIFORNIA vs. JOHN DOE**  
+**State Court vs. JOHN DOE**  
 Case No.: CR-2025-0742  
-Court: Superior Court of California, County of Los Angeles
+Court: Supreme Court of India
 
 ## DEFENDANT INFORMATION
 **Name:** John Doe  
-**Address:** 123 Main Street, Los Angeles, CA 90001  
+**Address:** 123 Main Street, HYD, IND 500090 
 **Date of Birth:** 01/15/1985 **SSN (Last 4):** 1234  
 **Charges:** PC 487(a) - Grand Theft
 
