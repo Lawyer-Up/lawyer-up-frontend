@@ -7,9 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-
-import { useSession, signIn, signOut } from "next-auth/react"
-
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,21 +16,7 @@ export default function LoginPage() {
     // Handle login logic here
     console.log("Login attempt:", { email, password });
   };
-  const { data: session } = useSession();
-  if (session) {
-    return (
-      <>
-        Signed in as {session.user.email} <br />
-        <button onClick={() => signOut()}>Sign out</button>
-      </>
-    );
-  }
-  return (
-    <>
-      Not signed in <br />
-      <button onClick={() => signIn()}>Sign in</button>
-    </>
-  );
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-background to-secondary">
       <div className="w-full max-w-md space-y-8 p-8 bg-card rounded-xl shadow-lg">
@@ -99,5 +82,6 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+
   );
 }
