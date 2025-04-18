@@ -45,6 +45,9 @@ export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
 
       <div className="space-y-6">
         <div className="space-y-2">
+          <Label htmlFor="caseType">
+            Type of Case <span className="text-red-500">*</span>
+          </Label>
           <Select value={data.caseType} onValueChange={handleSelectChange}>
             <SelectTrigger id="caseType" className="w-full">
               <SelectValue placeholder="Select case type" />
@@ -52,19 +55,22 @@ export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
             <SelectContent>
               <SelectItem value="CRIMINAL">Criminal</SelectItem>
               <SelectItem value="CIVIL">Civil</SelectItem>
-              <SelectItem value="FAMILY">Family Law</SelectItem>
-              <SelectItem value="PROPERTY">Property Dispute</SelectItem>
+              <SelectItem value="FAMILY_LAW">Family Law</SelectItem>
+              <SelectItem value="PROPERTY_DISPUTE">Property Dispute</SelectItem>
               <SelectItem value="CORPORATE">Corporate Law</SelectItem>
-              <SelectItem value="CONSUMER">Consumer Protection</SelectItem>
-              <SelectItem value="LABOR">Labor Law</SelectItem>
-              <SelectItem value="TAX">Tax Dispute</SelectItem>
-              <SelectItem value="INTELLECTUAL">Intellectual Property</SelectItem>
+              <SelectItem value="CONSUMER_PROTECTION">Consumer Protection</SelectItem>
+              <SelectItem value="LABOR_LAW">Labor Law</SelectItem>
+              <SelectItem value="TAX_DISPUTE">Tax Dispute</SelectItem>
+              <SelectItem value="INTELLECTUAL_PROPERTY">Intellectual Property</SelectItem>
               <SelectItem value="OTHER">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="description">
+            Brief Description of the Case <span className="text-red-500">*</span>
+          </Label>
           <Textarea
             id="description"
             name="description"
@@ -81,12 +87,16 @@ export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                
+                <Label htmlFor="date">
+                  Date of Incident <span className="text-red-500">*</span>
+                </Label>
                 <Input id="date" name="date" type="date" value={data.facts.date} onChange={handleFactsChange} />
               </div>
 
               <div className="space-y-2">
-                
+                <Label htmlFor="place">
+                  Place of Incident <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="place"
                   name="place"
