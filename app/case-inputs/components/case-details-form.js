@@ -45,9 +45,6 @@ export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
 
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="caseType">
-            Type of Case <span className="text-red-500">*</span>
-          </Label>
           <Select value={data.caseType} onValueChange={handleSelectChange}>
             <SelectTrigger id="caseType" className="w-full">
               <SelectValue placeholder="Select case type" />
@@ -68,9 +65,6 @@ export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description">
-            Brief Description of the Case <span className="text-red-500">*</span>
-          </Label>
           <Textarea
             id="description"
             name="description"
@@ -87,16 +81,12 @@ export function CaseDetailsForm({ data, updateData, onNext, onPrev }) {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="date">
-                  Date of Incident <span className="text-red-500">*</span>
-                </Label>
+                
                 <Input id="date" name="date" type="date" value={data.facts.date} onChange={handleFactsChange} />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="place">
-                  Place of Incident <span className="text-red-500">*</span>
-                </Label>
+                
                 <Input
                   id="place"
                   name="place"
