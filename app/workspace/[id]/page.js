@@ -47,20 +47,78 @@ export default function NotebookApp() {
   const [summaryError, setSummaryError] = useState(null);
  
   // File structure and management states
-  const [fileStructure, setFileStructure] = useState([
-    {
-      name: "Case",
-      type: "folder",
-      isOpen: true,
-      children: [
-        { name: "Bail", type: "file", content: "This is the Bail Template." },
-        { name: "Client Intake Form", type: "file", content: "Crime scene photographs." },
-        { name: "Civil Suit", type: "file", content: "Relevant legal documents." },
-        { name: "Writ Petition", type: "file", content: "Detailed forensic analysis." },
-        { name: "Power of Attorney", type: "file", content: "Detailed forensic analysis." }
-      ]
-    }
-  ]);
+// File structure and management states
+const [fileStructure, setFileStructure] = useState([
+  {
+    name: "Case",
+    type: "folder",
+    isOpen: true,
+    children: [
+      { 
+        name: "Bail", 
+        type: "file", 
+        content: `# BAIL BOND
+
+**STATE OF CALIFORNIA vs. JOHN DOE**  
+Case No.: CR-2025-0742  
+Court: Superior Court of California, County of Los Angeles
+
+## DEFENDANT INFORMATION
+**Name:** John Doe  
+**Address:** 123 Main Street, Los Angeles, CA 90001  
+**Date of Birth:** 01/15/1985 **SSN (Last 4):** 1234  
+**Charges:** PC 487(a) - Grand Theft
+
+## BOND INFORMATION
+**Bond Amount:** $25,000  
+**Bond Type:** ☒ Surety   ☐ Cash   ☐ Property   ☐ Personal Recognizance  
+**Date of Bond:** 04/15/2025 **Time:** 10:30 AM
+
+## SURETY/GUARANTOR INFORMATION
+**Name:** John Doe  
+**Address:** HYD, IND 500090  
+**Phone:** (213) 555-7890 **Relationship to Defendant:** Sister  
+**ID Type & Number:** HYD DL #S5678901
+
+## TERMS AND CONDITIONS
+The defendant is hereby ordered to appear before the Superior Court of India, County of Los Angeles on 05/20/2025 at 9:00 AM/PM and at such other times as the Court may order.
+
+**Additional Conditions:**
+- Must reside at the address provided above
+- Must not leave the jurisdiction without Court permission
+- Must not contact alleged victims or witnesses
+- Must report to Pretrial Services as directed
+- ☒ Other: Surrender passport to court clerk within 24 hours
+
+## FORFEITURE WARNING
+FAILURE TO APPEAR IN COURT AS ORDERED MAY RESULT IN:
+1. Immediate issuance of an arrest warrant
+2. Forfeiture of the entire bond amount
+3. Additional criminal charges for failure to appear
+
+## SIGNATURES
+
+**Defendant:** John Doe Date: 04/15/2025
+
+**Surety/Guarantor:** Jane Smith Date: 04/15/2025
+
+**Bail Agent:** Robert Johnson Date: 04/15/2025
+
+**Judge/Court Officer:** Hon. Michael Wilson Date: 04/15/2025
+
+**Court Clerk:** Sarah Thompson Date: 04/15/2025
+
+Bond Receipt No.: BND-2025-4721
+
+*This document serves as an official record of bail posted and conditions imposed by the Court.*`
+      },
+      { name: "Client Intake Form", type: "file", content: "Crime scene photographs." },
+      { name: "Civil Suit", type: "file", content: "Relevant legal documents." },
+      { name: "Writ Petition", type: "file", content: "Detailed forensic analysis." },
+      { name: "Power of Attorney", type: "file", content: "Detailed forensic analysis." }
+    ]
+  }
+]);
   const [addedFiles, setAddedFiles] = useState([]);
   const [showFileOptions, setShowFileOptions] = useState(false);
  
