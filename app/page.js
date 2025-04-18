@@ -3,15 +3,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Plus,
-  Grid,
-  List,
-  ChevronDown,
-  MoreVertical
-} from "lucide-react";
+import { Plus, Grid, List, ChevronDown, MoreVertical } from "lucide-react";
 import Link from "next/link";
 
 export default function NotebookLM() {
@@ -20,7 +14,7 @@ export default function NotebookLM() {
       <header className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center">
           <div className="w-8 h-8 mr-2 rounded-full bg-gray-800"></div>
-          <h1 className="text-xl font-semibold">Lawyer</h1>
+          <h1 className="text-xl font-semibold">LawyerUP</h1>
         </div>
 
         <DropdownMenu>
@@ -48,8 +42,8 @@ export default function NotebookLM() {
 
       <main className="max-w-5xl mx-auto px-6 py-12">
         <h1 className="text-5xl font-bold mb-16 bg-gradient-to-r from-blue-400 to-teal-500 bg-clip-text text-transparent">
-          Welcome to Lawyer
-          <span className="text-gray-800">, your AI-powered legal assistant</span>
+          Welcome to LawyerUP
+          <span className="text-gray-800">, your AI-powered legal auditor</span>
         </h1>
 
         <div>
@@ -65,7 +59,6 @@ export default function NotebookLM() {
             </Link>
 
             <div className="flex items-center">
-
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="ml-2 h-9">
@@ -98,7 +91,9 @@ export default function NotebookLM() {
               </div>
 
               <div className="absolute bottom-4 left-4 right-4">
-                <h3 className="text-lg font-medium text-gray-800 mb-1">Untitled notebook</h3>
+                <h3 className="text-lg font-medium text-gray-800 mb-1">
+                  Untitled notebook
+                </h3>
                 <p className="text-sm text-gray-600">18 Apr 2025 · 0 sources</p>
               </div>
             </div>
@@ -108,4 +103,3 @@ export default function NotebookLM() {
     </div>
   );
 }
-
