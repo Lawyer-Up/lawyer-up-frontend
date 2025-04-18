@@ -87,27 +87,11 @@ export default function NotebookApp() {
   const [showFullSummary, setShowFullSummary] = useState(false);
  
   // Notes states
-  const [notes, setNotes] = useState([
-    { id: 1, content: "Client meeting scheduled for next week", createdAt: new Date() },
-    { id: 2, content: "Review evidence documents", createdAt: new Date() }
-  ]);
+  const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState('');
  
   // Timeline states
-  const [timelineEvents, setTimelineEvents] = useState([
-    {
-      id: 1,
-      title: "First Hearing",
-      date: "2023-11-15",
-      completed: false
-    },
-    {
-      id: 2,
-      title: "Evidence Submission",
-      date: "2023-12-01",
-      completed: false
-    }
-  ]);
+  const [timelineEvents, setTimelineEvents] = useState([]);
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventDate, setNewEventDate] = useState('');
 
@@ -121,9 +105,10 @@ export default function NotebookApp() {
     "\n\nImportant deadlines:\n- Submit motion to suppress: October 30\n- Expert witness disclosure: November 5\n- Pretrial conference: November 10"
   );
 
-  // Fetch CIBC list on component mount
   useEffect(() => {
     if (workspaceId) {
+      fetchNotes();
+      fetchTimelineEvents();
       fetchCibcList();
     }
   }, [workspaceId]);
@@ -150,6 +135,24 @@ export default function NotebookApp() {
       }
     } catch (error) {
       console.error('Error fetching CIBC list:', error);
+    }
+  };
+
+  const fetchNotes = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/workspaces/${workspaceId}/notes`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setNotes(data);
+      }
+    } catch (error) {
+      console.error('Error fetching notes:', error);
     }
   };
 
@@ -274,52 +277,59 @@ export default function NotebookApp() {
     }
   };
 
-  // Generate sample legal arguments
-  const generateArguments = () => {
-    setIsGeneratingArguments(true);
-    
-    const fetchArguments = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/workspaces/${workspaceId}/generate-arguments`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setArgumentPoints(data.arguments);
-        } else {
-          console.error('Failed to generate arguments');
-          // Use mock arguments as fallback
-          const mockArguments = [
-            "Establish duty of care between the parties based on contractual relationship",
-            "Demonstrate breach of duty through documented communications",
-            "Show causation between breach and financial harm with accounting records",
-            "Quantify damages using financial statements and expert testimony"
-          ];
-          setArgumentPoints(mockArguments);
+// Generate arguments from API
+const generateArguments = async () => {
+  setIsGeneratingArguments(true);
+  
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/workspaces/${workspaceId}/generate-arguments`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        documentContent: openFiles[activeFileIndex]?.content || ''
+      })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setArgumentPoints(data.arguments);
+    } else {
+      throw new Error('Failed to generate arguments');
+    }
+  } catch (error) {
+    console.error('Error generating arguments:', error);
+    // Fallback mock arguments
+    setArgumentPoints([
+      "Establish duty of care between the parties based on contractual relationship",
+      "Demonstrate breach of duty through documented communications",
+      "Show causation between breach and financial harm with accounting records",
+      "Quantify damages using financial statements and expert testimony"
+    ]);
+  } finally {
+    setIsGeneratingArguments(false);
+  }
+};
+
+  const fetchTimelineEvents = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/workspaces/${workspaceId}/timeline`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      } catch (error) {
-        console.error('Error generating arguments:', error);
-        // Use mock arguments as fallback
-        const mockArguments = [
-          "Establish duty of care between the parties based on contractual relationship",
-          "Demonstrate breach of duty through documented communications",
-          "Show causation between breach and financial harm with accounting records",
-          "Quantify damages using financial statements and expert testimony"
-        ];
-        setArgumentPoints(mockArguments);
-      } finally {
-        setIsGeneratingArguments(false);
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setTimelineEvents(data);
       }
-    };
-    
-    fetchArguments();
-    setShowArgumentGenerator(true);
+    } catch (error) {
+      console.error('Error fetching timeline events:', error);
+    }
   };
 
   // Add argument to notes
@@ -332,49 +342,121 @@ export default function NotebookApp() {
     setNotes([...notes, newNote]);
   };
 
-  // Add new note
-  const addNote = () => {
-    if (newNote.trim()) {
-      const note = {
-        id: Date.now(),
-        content: newNote,
-        createdAt: new Date()
-      };
-      setNotes([...notes, note]);
-      setNewNote('');
+  const addNote = async () => {
+    if (!newNote.trim()) return;
+  
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/workspaces/${workspaceId}/notes`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: newNote })
+      });
+  
+      if (response.ok) {
+        const note = await response.json();
+        setNotes([note, ...notes]);
+        setNewNote('');
+      }
+    } catch (error) {
+      console.error('Error adding note:', error);
     }
   };
 
-  // Delete note
-  const deleteNote = (id) => {
-    setNotes(notes.filter(note => note.id !== id));
+  const deleteNote = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/workspaces/${workspaceId}/notes/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+  
+      if (response.ok) {
+        setNotes(notes.filter(note => note.id !== id));
+      }
+    } catch (error) {
+      console.error('Error deleting note:', error);
+    }
   };
 
-  // Add timeline event
-  const addTimelineEvent = () => {
-    if (newEventTitle.trim() && newEventDate) {
-      const event = {
-        id: Date.now(),
+// Add timeline event to API
+const addTimelineEvent = async () => {
+  if (!newEventTitle.trim() || !newEventDate) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/workspaces/${workspaceId}/timeline`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
         title: newEventTitle,
         date: newEventDate,
         completed: false
-      };
+      })
+    });
+
+    if (response.ok) {
+      const event = await response.json();
       setTimelineEvents([...timelineEvents, event]);
       setNewEventTitle('');
       setNewEventDate('');
     }
-  };
+  } catch (error) {
+    console.error('Error adding timeline event:', error);
+  }
+};
 
-  // Delete timeline event
-  const deleteTimelineEvent = (id) => {
-    setTimelineEvents(timelineEvents.filter(event => event.id !== id));
-  };
+// Delete timeline event from API
+const deleteTimelineEvent = async (id) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/workspaces/${workspaceId}/timeline/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
 
-  // Toggle event completion status
-  const toggleEventCompletion = (id) => {
-    setTimelineEvents(timelineEvents.map(event =>
-      event.id === id ? { ...event, completed: !event.completed } : event
-    ));
+    if (response.ok) {
+      setTimelineEvents(timelineEvents.filter(event => event.id !== id));
+    }
+  } catch (error) {
+    console.error('Error deleting timeline event:', error);
+  }
+};
+
+
+  const toggleEventCompletion = async (id) => {
+    try {
+      const event = timelineEvents.find(e => e.id === id);
+      if (!event) return;
+  
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/workspaces/${workspaceId}/timeline/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ completed: !event.completed })
+      });
+  
+      if (response.ok) {
+        setTimelineEvents(timelineEvents.map(e =>
+          e.id === id ? { ...e, completed: !e.completed } : e
+        ));
+      }
+    } catch (error) {
+      console.error('Error updating timeline event:', error);
+    }
   };
 
   // Toggle file explorer visibility
@@ -459,6 +541,12 @@ export default function NotebookApp() {
       reader.readAsText(file);
     }
     setShowFileOptions(false);
+  };
+
+  // Regenerate arguments
+  const regenerateArguments = async () => {
+    setIsGeneratingArguments(true);
+    await generateArguments();
   };
 
   // Create new text file
@@ -974,286 +1062,220 @@ export default function NotebookApp() {
           )}
         </div>
 
-        {/* Right Sidebar */}
-        <div className="w-[400px] flex flex-col">
-          <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="font-medium">Studio</h2>
-            <button className="p-1 hover:bg-gray-100 rounded">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
-                <line x1="9" x2="15" y1="3" y2="3"></line>
-                <line x1="9" x2="15" y1="21" y2="21"></line>
-                <line x1="3" x2="3" y1="9" y2="15"></line>
-                <line x1="21" x2="21" y1="9" y2="15"></line>
-              </svg>
+{/* Right Sidebar */}
+<div className="w-[400px] flex flex-col">
+  <div className="flex items-center justify-between p-4 border-b">
+    <h2 className="font-medium">Studio</h2>
+    <button className="p-1 hover:bg-gray-100 rounded">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
+        <line x1="9" x2="15" y1="3" y2="3"></line>
+        <line x1="9" x2="15" y1="21" y2="21"></line>
+        <line x1="3" x2="3" y1="9" y2="15"></line>
+        <line x1="21" x2="21" y1="9" y2="15"></line>
+      </svg>
+    </button>
+  </div>
+
+  <div className="p-4 space-y-4 overflow-y-auto flex-1">
+    {showArgumentGenerator ? (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-medium">Argument Generator</h3>
+          <button
+            onClick={() => setShowArgumentGenerator(false)}
+            className="p-1 hover:bg-gray-100 rounded"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+       
+        <div className="border rounded-lg p-4 bg-gray-50">
+          <h4 className="font-medium mb-2">Analyzing: {openFiles[activeFileIndex]?.name || 'Current Document'}</h4>
+          <p className="text-sm text-gray-600 mb-3">
+            Based on the document content, here are potential legal arguments:
+          </p>
+         
+          {isGeneratingArguments ? (
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-pulse flex space-x-2">
+                <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+              </div>
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {argumentPoints.map((point, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <div className="flex-1 p-3 bg-white border rounded text-sm">
+                    {point}
+                  </div>
+                  <button
+                    onClick={() => addArgumentToNotes(point)}
+                    className="p-2 text-blue-500 hover:bg-gray-100 rounded"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+       
+        <div className="border-t pt-4">
+          <button
+            onClick={regenerateArguments}
+            className="w-full py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600"
+          >
+            Regenerate Arguments
+          </button>
+        </div>
+      </div>
+    ) : (
+      <>
+        <div className="flex items-center justify-between">
+          <h3 className="font-medium">Notes</h3>
+          <button
+            onClick={() => {
+              setShowArgumentGenerator(true);
+              if (activeFileIndex !== null) {
+                generateArguments();
+              }
+            }}
+            className="flex items-center gap-1 px-3 py-1 text-sm rounded hover:bg-gray-100"
+          >
+            <Gavel className="w-4 h-4" />
+            <span>Arguments</span>
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
+              placeholder="Add a new note..."
+              className="flex-1 p-2 border rounded text-sm"
+              onKeyDown={(e) => e.key === 'Enter' && addNote()}
+            />
+            <button
+              onClick={addNote}
+              disabled={!newNote.trim()}
+              className={`px-3 py-2 rounded text-sm font-medium ${!newNote.trim() ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            >
+              Add
             </button>
           </div>
 
-          <div className="p-4 space-y-4 overflow-y-auto flex-1">
-            {showArgumentGenerator ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium">Argument Generator</h3>
-                  <button
-                    onClick={() => setShowArgumentGenerator(false)}
-                    className="p-1 hover:bg-gray-100 rounded"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-               
-                <div className="border rounded-lg p-4 bg-gray-50">
-                  <h4 className="font-medium mb-2">Analyzing: {openFiles[activeFileIndex]?.name || 'Current Document'}</h4>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Based on the document content, here are potential legal arguments:
-                  </p>
-                 
-                  {isGeneratingArguments ? (
-                    <div className="flex items-center justify-center py-4">
-                      <div className="animate-pulse flex space-x-2">
-                        <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                        <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                        <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                      </div>
-                    </div>
-                  ) : (
-                    <ul className="space-y-3">
-                      {argumentPoints.map((point, index) => (
-                        <li key={index} className="flex items-start gap-2">
-                          <div className="flex-1 p-3 bg-white border rounded text-sm">
-                            {point}
-                          </div>
-                          <button
-                            onClick={() => addArgumentToNotes(point)}
-                            className="p-2 text-blue-500 hover:bg-gray-100 rounded"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-               
-                <div className="border-t pt-4">
-                  <button
-                    onClick={() => setShowGenerateModal(true)}
-                    className="w-full py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600"
-                  >
-                    Regenerate Arguments
-                  </button>
-                </div>
-              </div>
+          <div className="space-y-2">
+            {notes.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">No notes yet</p>
             ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium">Notes</h3>
-                  <button
-                    onClick={() => setShowArgumentGenerator(true)}
-                    className="flex items-center gap-1 px-3 py-1 text-sm rounded hover:bg-gray-100"
-                  >
-                    <Gavel className="w-4 h-4" />
-                    <span>Arguments</span>
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newNote}
-                      onChange={(e) => setNewNote(e.target.value)}
-                      placeholder="Add a new note..."
-                      className="flex-1 p-2 border rounded text-sm"
-                      onKeyDown={(e) => e.key === 'Enter' && addNote()}
-                    />
-                    <button
-                      onClick={addNote}
-                      className="px-3 py-2 bg-blue-500 text-white rounded text-sm font-medium hover:bg-blue-600"
-                    >
-                      Add
-                    </button>
+              notes
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .map((note) => (
+                  <div key={note.id} className="border rounded-lg p-3 bg-white group">
+                    <div className="flex justify-between">
+                      <p className="text-sm">{note.content}</p>
+                      <button
+                        onClick={() => deleteNote(note.id)}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-gray-100 rounded"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(note.createdAt).toLocaleString()}
+                    </p>
                   </div>
-
-                  <div className="space-y-2">
-                    {notes
-                      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                      .map((note) => (
-                        <div key={note.id} className="border rounded-lg p-3 bg-white group">
-                          <div className="flex justify-between">
-                            <p className="text-sm">{note.content}</p>
-                            <button
-                              onClick={() => deleteNote(note.id)}
-                              className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-gray-100 rounded"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(note.createdAt).toLocaleString()}
-                          </p>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              </>
+                ))
             )}
           </div>
-
-          {/* Timeline Section */}
-          <div className="border-t p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium">Case Timeline</h3>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newEventTitle}
-                  onChange={(e) => setNewEventTitle(e.target.value)}
-                  placeholder="Add event"
-                  className="p-2 border rounded text-sm w-32"
-                  onKeyDown={(e) => e.key === 'Enter' && addTimelineEvent()}
-                />
-                <input
-                  type="date"
-                  value={newEventDate}
-                  onChange={(e) => setNewEventDate(e.target.value)}
-                  className="p-2 border rounded text-sm w-32"
-                />
-                <button
-                  onClick={addTimelineEvent}
-                  className="p-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <ul className="space-y-1">
-              {timelineEvents
-                .sort((a, b) => new Date(a.date) - new Date(b.date))
-                .map((event) => (
-                  <li
-                    key={event.id}
-                    className={`flex items-center gap-2 p-2 rounded cursor-pointer ${event.completed ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
-                    onClick={() => toggleEventCompletion(event.id)}
-                  >
-                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${event.completed ? 'bg-green-100 border-green-300' : 'border-gray-300'}`}>
-                      {event.completed && <Check className="w-3 h-3 text-green-500" />}
-                    </div>
-                    <div className="flex-1">
-                      <p className={`text-sm ${event.completed ? 'line-through text-gray-500' : ''}`}>
-                        {event.title}
-                      </p>
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(event.date).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteTimelineEvent(event.id);
-                      }}
-                      className="p-1 text-red-500 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </li>
-                ))}
-            </ul>
-          </div>
         </div>
+      </>
+    )}
+  </div>
+
+  {/* Timeline Section */}
+  <div className="border-t p-4">
+    <div className="flex items-center justify-between mb-3">
+      <h3 className="font-medium">Case Timeline</h3>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={newEventTitle}
+          onChange={(e) => setNewEventTitle(e.target.value)}
+          placeholder="Event title"
+          className="p-2 border rounded text-sm w-32"
+          onKeyDown={(e) => e.key === 'Enter' && addTimelineEvent()}
+        />
+        <input
+          type="date"
+          value={newEventDate}
+          onChange={(e) => setNewEventDate(e.target.value)}
+          className="p-2 border rounded text-sm w-32"
+        />
+        <button
+          onClick={addTimelineEvent}
+          disabled={!newEventTitle.trim() || !newEventDate}
+          className={`p-2 rounded text-sm ${!newEventTitle.trim() || !newEventDate ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+        >
+          <Plus className="w-4 h-4" />
+        </button>
       </div>
-
-      {/* Generate Document Modal */}
-      {showGenerateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Generate Document</h3>
-              <button
-                onClick={() => setShowGenerateModal(false)}
-                className="p-1 hover:bg-gray-100 rounded"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
-                <select
-                  value={documentType}
-                  onChange={(e) => setDocumentType(e.target.value)}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="">Select type</option>
-                  <option value="bail">Bail Application</option>
-                  <option value="legal-notice">Legal Notice</option>
-                  <option value="email">Email to Client</option>
-                  <option value="petition">Petition</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Recipient</label>
-                <select
-                  value={recipient}
-                  onChange={(e) => setRecipient(e.target.value)}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="">Select recipient</option>
-                  <option value="court">Hon'ble Court</option>
-                  <option value="police">Police Station</option>
-                  <option value="opposing-counsel">Opposing Counsel</option>
-                  <option value="client">Client</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tone</label>
-                <select
-                  value={tone}
-                  onChange={(e) => setTone(e.target.value)}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="">Select tone</option>
-                  <option value="neutral">Neutral</option>
-                  <option value="professional">Professional</option>
-                  <option value="aggressive">Aggressive</option>
-                  <option value="strict">Strict</option>
-                </select>
-              </div>
-              
-              <div className="flex justify-end gap-2 pt-4">
-                <button
-                  onClick={() => setShowGenerateModal(false)}
-                  className="px-4 py-2 border rounded text-sm font-medium hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={generateArguments}
-                  disabled={!documentType || !recipient || !tone}
-                  className={`px-4 py-2 rounded text-sm font-medium text-white ${!documentType || !recipient || !tone ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
-                >
-                  Generate
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
-  );
-}
+
+    <ul className="space-y-1">
+      {timelineEvents.length === 0 ? (
+        <p className="text-sm text-gray-500 text-center py-4">No events yet</p>
+      ) : (
+        timelineEvents
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+          .map((event) => (
+            <li
+              key={event.id}
+              className={`flex items-center gap-2 p-2 rounded cursor-pointer ${event.completed ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
+              onClick={() => toggleEventCompletion(event.id)}
+            >
+              <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${event.completed ? 'bg-green-100 border-green-300' : 'border-gray-300'}`}>
+                {event.completed && <Check className="w-3 h-3 text-green-500" />}
+              </div>
+              <div className="flex-1">
+                <p className={`text-sm ${event.completed ? 'line-through text-gray-500' : ''}`}>
+                  {event.title}
+                </p>
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  {new Date(event.date).toLocaleDateString()}
+                </p>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteTimelineEvent(event.id);
+                }}
+                className="p-1 text-red-500 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </li>
+          ))
+      )}
+    </ul>
+  </div>
+</div>
+</div>
+</div>
+)}
